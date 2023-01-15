@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FWGPUE", "FWGPUE\FWGPUE.csproj", "{C74DD3B6-6128-4B11-960C-F6B3E6A48C5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C74DD3B6-6128-4B11-960C-F6B3E6A48C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C74DD3B6-6128-4B11-960C-F6B3E6A48C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C74DD3B6-6128-4B11-960C-F6B3E6A48C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C74DD3B6-6128-4B11-960C-F6B3E6A48C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {48BAF931-2D66-46B6-B04C-B59A67E9581D}
+	EndGlobalSection
+EndGlobal
