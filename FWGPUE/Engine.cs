@@ -80,7 +80,7 @@ class Engine {
     public float TotalSeconds { get; protected set; } = 0;
     public float LastFrameTime { get; protected set; }
     public float TickTimer { get; protected set; }
-    public float TickTime => Config.TickRate / 1000f;
+    public float TickTime => 1f / Config.TickRate;
 
     public GL? Gl { get; protected set; }
 
@@ -160,14 +160,15 @@ class Engine {
     }
 
     private unsafe void Load() {
-
     }
 
     private void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
         TotalSeconds += LastFrameTime;
         TickTimer += LastFrameTime;
-        TestObject!.Transform.Rotation.ChangeBy(new Vector3(0, 0, 0.1f * (float)elapsed));
+
+        UpdateKeyFrames();
+        UpdateKeyTimers((float)elapsed);
 
         Log.Inane(TickTimer);
         while (TickTimer > TickTime) {
@@ -177,10 +178,14 @@ class Engine {
         }
     }
     public virtual void Tick() {
+        TestObject!.Transform.Rotation.ChangeBy(new Vector3(0, 0, 0.1f * (float)TickTime));
+
         if (KeyStates![(int)Key.Left]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(-10 * TickTime, 0, 0)); }
         if (KeyStates![(int)Key.Right]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(10 * TickTime, 0, 0)); }
         if (KeyStates![(int)Key.Up]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 10 * TickTime, 0)); }
         if (KeyStates![(int)Key.Down]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, -10 * TickTime, 0)); }
+        if (KeyStates![(int)Key.Q]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 0, 10 * TickTime)); }
+        if (KeyStates![(int)Key.E]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 0, -10 * TickTime)); }
     }
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
@@ -206,11 +211,5 @@ class Engine {
                 End();
             }
         }
-    }
-}
-
-public static class Extensions {
-    public static void ChangeBy(ref this Vector3 me, Vector3 change) {
-        me += change;
     }
 }
