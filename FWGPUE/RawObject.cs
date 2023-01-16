@@ -42,6 +42,7 @@ class RawObject : IDisposable {
             Matrix4x4.CreateTranslation(Transform.Position);
         var view = Matrix4x4.CreateLookAt(context.CameraPos, context.CameraTarget, context.CameraUp);
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 100.0f);
+        //var projection = Matrix4x4.CreateOrthographic(context.Config.ScreenWidth, context.Config.ScreenHeight, 0.1f, 100f);
 
         Shader.SetUniform("uModel", model);
         Shader.SetUniform("uView", view);
