@@ -27,6 +27,10 @@ namespace FWGPUE.IO {
         [ConfigValue]
         [Comment("how many times a second the engine ticks")]
         public int TickRate { get; set; } = 240;
+
+        [ConfigValue]
+        [Comment("log level")]
+        public Log.Severity LogSeverity { get; set; } = Log.Severity.All;
         #endregion values
 
         #region save / load
@@ -56,6 +60,9 @@ namespace FWGPUE.IO {
                     var t = valueProperty.PropertyType; // for smaller ifs
                     if (t == typeof(int)) { valueProperty.SetValue(this, int.Parse(valueValue)); }
                     if (t == typeof(string)) { valueProperty.SetValue(this, valueValue); }
+                    if (t == typeof(Log.Severity)){ valueProperty.SetValue(this, Enum.Parse<Log.Severity>(valueValue)); }
+
+                    Log.Info($"config value {valueName} loaded as {valueProperty.GetValue(this)}");
                 }
             }
         }
