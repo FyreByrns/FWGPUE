@@ -26,7 +26,7 @@ namespace FWGPUE.IO {
 
         [ConfigValue]
         [Comment("how many times a second the engine ticks")]
-        public int TickRate { get; set; } = 60;
+        public int TickRate { get; set; } = 240;
         #endregion values
 
         #region save / load
