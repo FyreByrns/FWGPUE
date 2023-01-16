@@ -211,6 +211,6 @@ class Engine {
 
 public static class Extensions {
     public static void ChangeBy(ref this Vector3 me, Vector3 change) {
-        me = me + change;
+        me += change;
     }
 }
