@@ -199,6 +199,7 @@ class Engine {
             Config.Load();
         }
         else {
+            Log.Info("writing default config");
             Config.Save();
         }
 
