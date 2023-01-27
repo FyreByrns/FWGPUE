@@ -4,8 +4,9 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using FWGPUE.IO;
 using System.Numerics;
-using Silk.NET.Vulkan;
-using System.Reflection;
+
+using FWGPUE.Graphics;
+using Shader = FWGPUE.Graphics.Shader;
 
 namespace FWGPUE;
 
@@ -186,8 +187,6 @@ class Engine {
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        Log.Info(SpriteBatcher.SpritesThisFrame.Count);
-
         SpriteBatcher!.DrawAll(Gl, this);
         SpriteBatcher!.Clear();
     }
@@ -212,18 +211,6 @@ class Engine {
                 End();
             }
         }
-    }
-}
-
-class Sprite {
-    static Random RNG = new();
-    public short ID { get; }
-
-    public Transform Transform { get; set; } = new();
-    public string? Texture { get; set; }
-
-    public Sprite() {
-        ID = unchecked((short)RNG.Next(0, short.MaxValue));
     }
 }
 
