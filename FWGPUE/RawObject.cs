@@ -36,7 +36,7 @@ class RawObject : IDisposable {
             Matrix4x4.CreateRotationZ(Engine.TurnsToRadians(Transform.Rotation.Z)) *
             Matrix4x4.CreateRotationY(Engine.TurnsToRadians(Transform.Rotation.Y)) *
             Matrix4x4.CreateRotationX(Engine.TurnsToRadians(Transform.Rotation.X)) *
-            Matrix4x4.CreateScale(Transform.Scale.X, Transform.Scale.Y, 1) *
+            Matrix4x4.CreateScale(Transform.Scale.X, Transform.Scale.Y, Transform.Scale.Z) *
             Matrix4x4.CreateTranslation(Transform.Position);
         var view = Matrix4x4.CreateLookAt(context.CameraPos, context.CameraTarget, context.CameraUp);
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 100.0f);

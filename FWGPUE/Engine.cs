@@ -1,13 +1,11 @@
-﻿using System.Runtime.InteropServices;
-using Silk.NET.Windowing;
+﻿using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
-using Silk.NET.Core;
-using Silk.NET.Core.Native;
 using FWGPUE.IO;
-using System.Runtime.CompilerServices;
 using System.Numerics;
+using Silk.NET.Vulkan;
+using System.Reflection;
 
 namespace FWGPUE;
 
@@ -83,10 +81,9 @@ class Engine {
     public float TickTime => 1f / Config.TickRate;
 
     public GL? Gl { get; protected set; }
+    public SpriteBatcher SpriteBatcher { get; protected set; }
 
     public bool ShutdownComplete { get; private set; } = false;
-
-    RawObject? TestObject;
 
     public Config Config { get; }
 
@@ -127,15 +124,9 @@ class Engine {
     protected void InitGraphics() {
         Gl = GL.GetApi(Window);
 
-        TestObject = new RawObject(Gl) {
-            Transform = new() {
-                Position = new Vector3(0.5f, 0.5f, 0),
-                Rotation = new Vector3(0, 0, TurnsToRadians(0.5f)),
-                Scale = 10f,
-            }
-        };
-
         Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
+
+        SpriteBatcher = new SpriteBatcher(Gl);
     }
     #endregion initialization
 
@@ -144,7 +135,6 @@ class Engine {
     }
 
     protected void Closing() {
-        TestObject!.Dispose();
     }
 
     protected void End() {
@@ -178,18 +168,23 @@ class Engine {
         }
     }
     public virtual void Tick() {
-        TestObject!.Transform.Rotation.ChangeBy(new Vector3(0, 0, 0.1f * (float)TickTime));
 
-        if (KeyStates![(int)Key.Left]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(-10 * TickTime, 0, 0)); }
-        if (KeyStates![(int)Key.Right]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(10 * TickTime, 0, 0)); }
-        if (KeyStates![(int)Key.Up]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 10 * TickTime, 0)); }
-        if (KeyStates![(int)Key.Down]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, -10 * TickTime, 0)); }
-        if (KeyStates![(int)Key.Q]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 0, 10 * TickTime)); }
-        if (KeyStates![(int)Key.E]) { TestObject!.Transform!.Position.ChangeBy(new Vector3(0, 0, -10 * TickTime)); }
     }
+    double accum = 0;
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
-        TestObject!.Draw(Gl!, this);
+
+        accum += obj;
+        SpriteBatcher.DrawSprite(new Sprite() {
+            Transform = new Transform() {
+                Scale = new Vector3(10f),
+                Position = new Vector3(0, (float)accum, 1),
+                Rotation = new Vector3(0, 0, (float)accum)
+            }
+        });
+
+        SpriteBatcher!.DrawAll(Gl, this);
+        SpriteBatcher!.Clear();
     }
 
     public Engine() {
@@ -212,5 +207,111 @@ class Engine {
                 End();
             }
         }
+    }
+}
+
+class Sprite {
+    public Transform Transform { get; set; } = new();
+    public string Texture { get; set; }
+}
+
+class SpriteBatcher {
+    float[] quadVertices = {
+        // positions  
+        -0.5f,  0.5f, 1.0f,
+        -0.5f, -0.5f, 1.0f,
+         0.5f, -0.5f, 1.0f,
+
+        -0.5f,  0.5f, 1.0f,
+         0.5f, -0.5f, 1.0f,
+         0.5f,  0.5f, 1.0f,
+    };
+    uint quadVAO;
+    uint quadVBO;
+    uint offsetVBO;
+
+    public List<Sprite> SpritesThisFrame { get; } = new();
+    public Shader Shader { get; set; }
+
+    /// <summary>
+    /// Register sprite for drawing this frame.
+    /// </summary>
+    public void DrawSprite(Sprite sprite) {
+        SpritesThisFrame.Add(sprite);
+    }
+
+    public void DrawAll(GL gl, Engine context) {
+        // get offsets
+        Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
+        for (int i = 0; i < offsets.Length; i++) {
+            Sprite sprite = SpritesThisFrame[i];
+            var model =
+                Matrix4x4.CreateRotationZ(Engine.TurnsToRadians(sprite.Transform.Rotation.Z)) *
+                Matrix4x4.CreateRotationY(Engine.TurnsToRadians(sprite.Transform.Rotation.Y)) *
+                Matrix4x4.CreateRotationX(Engine.TurnsToRadians(sprite.Transform.Rotation.X)) *
+                Matrix4x4.CreateScale(sprite.Transform.Scale.X, sprite.Transform.Scale.Y, 1) *
+                Matrix4x4.CreateTranslation(sprite.Transform.Position);
+
+            offsets[i] = model;
+        }
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
+        unsafe {
+            fixed (Matrix4x4* data = offsets) {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Matrix4x4) * offsets.Length), data, BufferUsageARB.StaticDraw);
+            }
+        }
+
+        var view = Matrix4x4.CreateLookAt(context.CameraPos, context.CameraTarget, context.CameraUp);
+        var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 100.0f);
+
+        Shader.Use();
+        Shader.SetUniform("uView", view);
+        Shader.SetUniform("uProjection", projection);
+
+        gl.BindVertexArray(quadVAO);
+        gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
+        SpritesThisFrame.Clear();
+    }
+
+    public void Clear() {
+        SpritesThisFrame.Clear();
+    }
+
+    public SpriteBatcher(GL gl) {
+        Shader = new Shader(gl, new ShaderFile("assets/sprite.shader"));
+
+        quadVAO = gl.GenVertexArray();
+        quadVBO = gl.GenBuffer();
+        offsetVBO = gl.GenBuffer();
+
+        gl.BindBuffer(GLEnum.ArrayBuffer, quadVBO);
+        unsafe {
+            fixed (void* data = quadVertices) {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quadVertices.Length * sizeof(float)), data, BufferUsageARB.StaticDraw);
+            }
+        }
+
+        gl.BindVertexArray(quadVAO);
+        unsafe {
+            gl.EnableVertexAttribArray(0);
+            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 3, (void*)0);
+        }
+
+        // setup offset buffer
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
+        gl.EnableVertexAttribArray(1);
+        gl.EnableVertexAttribArray(2);
+        gl.EnableVertexAttribArray(3);
+        gl.EnableVertexAttribArray(4);
+        unsafe {
+            gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, (uint)(sizeof(Matrix4x4)), (void*)(sizeof(float) * 4 * 0));
+            gl.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, (uint)(sizeof(Matrix4x4)), (void*)(sizeof(float) * 4 * 1));
+            gl.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, (uint)(sizeof(Matrix4x4)), (void*)(sizeof(float) * 4 * 2));
+            gl.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, (uint)(sizeof(Matrix4x4)), (void*)(sizeof(float) * 4 * 3));
+        }
+        gl.VertexAttribDivisor(1, 1);
+        gl.VertexAttribDivisor(2, 1);
+        gl.VertexAttribDivisor(3, 1);
+        gl.VertexAttribDivisor(4, 1);
     }
 }
