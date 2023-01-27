@@ -167,21 +167,26 @@ class Engine {
             TickTimer -= TickTime;
         }
     }
-    public virtual void Tick() {
 
+    Sprite testSprite = new Sprite() {
+        Transform = new Transform() {
+            Scale = new Vector3(10f),
+            Position = new Vector3(0, 0, 1),
+        }
+    };
+    public virtual void Tick() {
+        if (KeyDown(Key.Left)) {
+            CameraPos.ChangeBy(new Vector3(-10 * TickTime, 0, 0));
+            CameraTarget.ChangeBy(new Vector3(-10 * TickTime, 0, 0));
+        }
+
+        testSprite.Transform.Rotation = new Vector3(0, 0, TotalSeconds);
+        SpriteBatcher.DrawSprite(testSprite);
     }
-    double accum = 0;
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        accum += obj;
-        SpriteBatcher.DrawSprite(new Sprite() {
-            Transform = new Transform() {
-                Scale = new Vector3(10f),
-                Position = new Vector3(0, (float)accum, 1),
-                Rotation = new Vector3(0, 0, (float)accum)
-            }
-        });
+        Log.Info(SpriteBatcher.SpritesThisFrame.Count);
 
         SpriteBatcher!.DrawAll(Gl, this);
         SpriteBatcher!.Clear();
@@ -211,8 +216,15 @@ class Engine {
 }
 
 class Sprite {
+    static Random RNG = new();
+    public short ID { get; }
+
     public Transform Transform { get; set; } = new();
-    public string Texture { get; set; }
+    public string? Texture { get; set; }
+
+    public Sprite() {
+        ID = unchecked((short)RNG.Next(0, short.MaxValue));
+    }
 }
 
 class SpriteBatcher {
@@ -231,13 +243,18 @@ class SpriteBatcher {
     uint offsetVBO;
 
     public List<Sprite> SpritesThisFrame { get; } = new();
+    public HashSet<short> RegisteredSpriteIDs { get; } = new(); // to track which sprites are already being drawn
+
     public Shader Shader { get; set; }
 
     /// <summary>
     /// Register sprite for drawing this frame.
     /// </summary>
     public void DrawSprite(Sprite sprite) {
-        SpritesThisFrame.Add(sprite);
+        if (!RegisteredSpriteIDs.Contains(sprite.ID)) {
+            SpritesThisFrame.Add(sprite);
+            RegisteredSpriteIDs.Add(sprite.ID);
+        }
     }
 
     public void DrawAll(GL gl, Engine context) {
@@ -262,7 +279,7 @@ class SpriteBatcher {
         }
 
         var view = Matrix4x4.CreateLookAt(context.CameraPos, context.CameraTarget, context.CameraUp);
-        var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 100.0f);
+        var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 200.0f);
 
         Shader.Use();
         Shader.SetUniform("uView", view);
@@ -270,7 +287,9 @@ class SpriteBatcher {
 
         gl.BindVertexArray(quadVAO);
         gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
+
         SpritesThisFrame.Clear();
+        RegisteredSpriteIDs.Clear();
     }
 
     public void Clear() {
