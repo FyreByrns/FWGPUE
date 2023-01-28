@@ -2,23 +2,32 @@
 using FWGPUE.IO;
 using System.Numerics;
 using Shader = FWGPUE.Graphics.Shader;
+using Silk.NET.SDL;
 
 namespace FWGPUE.Graphics;
 
 class SpriteBatcher {
+    // -0.5, -0.5 v       v 0.5, -0.5
+    //            A------>D
+    //            ^     / |
+    //            |   o   | <--- o is origin
+    //            | /     v
+    //            B<------C
+    // -0.5,  0.5 '       ' 0.5,  0.5
     float[] quadVertices = {
-        // positions  
-        -0.5f,  0.5f, 1.0f,
-        -0.5f, -0.5f, 1.0f,
-         0.5f, -0.5f, 1.0f,
-
-        -0.5f,  0.5f, 1.0f,
-         0.5f, -0.5f, 1.0f,
-         0.5f,  0.5f, 1.0f,
+     // positions           uvs
+        -0.5f,  0.5f, 1.0f, 0f, 1f, // B
+        -0.5f, -0.5f, 1.0f, 0f, 0f, // A
+         0.5f, -0.5f, 1.0f, 1f, 0f, // D
+                                    
+        -0.5f,  0.5f, 1.0f, 0f, 1f, // B
+         0.5f, -0.5f, 1.0f, 1f, 0f, // D
+         0.5f,  0.5f, 1.0f, 1f, 1f, // C
     };
     uint quadVAO;
     uint quadVBO;
     uint offsetVBO;
+    uint uvVBO;
 
     public List<Sprite> SpritesThisFrame { get; } = new();
     public HashSet<short> RegisteredSpriteIDs { get; } = new(); // to track which sprites are already being drawn
@@ -35,7 +44,7 @@ class SpriteBatcher {
         }
     }
 
-    public void DrawAll(GL gl, Engine context) {
+    public void DrawAll(GL gl, Engine context, SpriteAtlasFile atlas) {
         // get offsets
         Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
         for (int i = 0; i < offsets.Length; i++) {
@@ -56,12 +65,31 @@ class SpriteBatcher {
             }
         }
 
+        // get uvs
+        Vector4[] uvs = new Vector4[SpritesThisFrame.Count];
+        for (int i = 0; i < uvs.Length; i++) {
+            Sprite sprite = SpritesThisFrame[i];
+            var rect = atlas.GetRect(sprite.Texture!);
+            uvs[i] = new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
+        unsafe {
+            fixed (Vector4* data = uvs) {
+                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Vector4) * uvs.Length), data, BufferUsageARB.StaticDraw);
+            }
+        }
+
         var view = context.Camera.ViewMatrix;
         var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 200.0f);
 
         Shader.Use();
         Shader.SetUniform("uView", view);
         Shader.SetUniform("uProjection", projection);
+        Shader.SetUniform("uAtlasSize", new Vector2(atlas.Texture!.Width, atlas.Texture!.Height));
+
+        if (atlas.Texture is not null) {
+            atlas.Texture.Bind();
+        }
 
         gl.BindVertexArray(quadVAO);
         gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
@@ -80,6 +108,7 @@ class SpriteBatcher {
         quadVAO = gl.GenVertexArray();
         quadVBO = gl.GenBuffer();
         offsetVBO = gl.GenBuffer();
+        uvVBO = gl.GenBuffer();
 
         gl.BindBuffer(GLEnum.ArrayBuffer, quadVBO);
         unsafe {
@@ -88,27 +117,42 @@ class SpriteBatcher {
             }
         }
 
+        // setup vertex data
+        uint slot = 0;
+
         gl.BindVertexArray(quadVAO);
+        gl.EnableVertexAttribArray(slot);
+        gl.EnableVertexAttribArray(slot + 1);
         unsafe {
-            gl.EnableVertexAttribArray(0);
-            gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 3, (void*)0);
+            gl.VertexAttribPointer(slot + 0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)0);
+            gl.VertexAttribPointer(slot + 1, 2, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)(sizeof(float) * 3));
         }
+        slot += 2;
 
         // setup offset buffer
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
-        gl.EnableVertexAttribArray(1);
-        gl.EnableVertexAttribArray(2);
-        gl.EnableVertexAttribArray(3);
-        gl.EnableVertexAttribArray(4);
+        gl.EnableVertexAttribArray(slot + 0); // mat4 takes up 4 slots as float4s
+        gl.EnableVertexAttribArray(slot + 1); // ..
+        gl.EnableVertexAttribArray(slot + 2); // ..
+        gl.EnableVertexAttribArray(slot + 3); // ..
         unsafe {
-            gl.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 0));
-            gl.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 1));
-            gl.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 2));
-            gl.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 3));
+            gl.VertexAttribPointer(slot + 0, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 0));
+            gl.VertexAttribPointer(slot + 1, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 1));
+            gl.VertexAttribPointer(slot + 2, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 2));
+            gl.VertexAttribPointer(slot + 3, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 3));
         }
-        gl.VertexAttribDivisor(1, 1);
-        gl.VertexAttribDivisor(2, 1);
-        gl.VertexAttribDivisor(3, 1);
-        gl.VertexAttribDivisor(4, 1);
+        gl.VertexAttribDivisor(slot + 0, 1); // instanced row 1
+        gl.VertexAttribDivisor(slot + 1, 1); // ..         .. 2
+        gl.VertexAttribDivisor(slot + 2, 1); // ..         .. 3
+        gl.VertexAttribDivisor(slot + 3, 1); // ..         .. 4
+        slot += 4;
+
+        // setup uv buffer
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
+        gl.EnableVertexAttribArray(slot);
+        unsafe {
+            gl.VertexAttribPointer(slot, 4, VertexAttribPointerType.Float, false, sizeof(float) * 4, (void*)0);
+        }
+        gl.VertexAttribDivisor(slot, 1); // instanced 
     }
 }

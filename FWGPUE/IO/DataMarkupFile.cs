@@ -133,6 +133,15 @@ class DataMarkupFile : EngineFile {
 
     public record Token(string Name, TokenContents Contents);
     public record TokenContents(string Value, params string[] Collection);
+
+    public bool HasToken(string name) {
+        foreach (InternalToken token in Tokens!) {
+            if (token.Name == name) {
+                return true;
+            }
+        }
+        return false;
+    }
     public Token GetToken(string name) {
         foreach (InternalToken token in Tokens!) {
             if (token.Name == name) {
@@ -142,6 +151,15 @@ class DataMarkupFile : EngineFile {
 
         Log.Warn($"couldn't find {name} in token collection");
         return new("", new("", ""));
+    }
+    public bool TryGetToken(string name, out Token? result) {
+        if (HasToken(name)) {
+            result = GetToken(name);
+            return true;
+        }
+
+        result = null;
+        return false;
     }
 
     #region save / load

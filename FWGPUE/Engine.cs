@@ -83,6 +83,7 @@ class Engine {
 
     public Camera? Camera { get; set; }
     public SpriteBatcher? SpriteBatcher { get; protected set; }
+    public SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
     public bool ShutdownComplete { get; private set; } = false;
 
@@ -123,6 +124,10 @@ class Engine {
 
         Camera = new Camera(new Vector2(0), 100);
         SpriteBatcher = new SpriteBatcher(Gl);
+
+        SpriteAtlas = new("assets/atlases/main.atlas");
+        SpriteAtlas.Load();
+        SpriteAtlas.LoadTexture(Gl);
     }
     #endregion initialization
 
@@ -145,11 +150,22 @@ class Engine {
         End();
     }
 
-    private void Load() {
-        DataMarkupFile mainAtlas = new DataMarkupFile("assets/atlases/main.atlas");
-        mainAtlas.Load();
-    }
+    private void Load() { }
 
+    Sprite testSprite = new Sprite() {
+        Texture = "smiley",
+        Transform = {
+            Position = new(-37, 1, 0),
+            Scale = new(70, 70, 1)
+        }
+    };
+    Sprite testSprite2 = new Sprite() {
+        Texture = "closesmiley",
+        Transform = {
+            Position = new(37, 1, 0),
+            Scale = new(70, 70, 1)
+        }
+    };
     private void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
         TotalSeconds += LastFrameTime;
@@ -165,12 +181,15 @@ class Engine {
         }
     }
 
-    public virtual void Tick() { }
+    public virtual void Tick() {
+        SpriteBatcher!.DrawSprite(testSprite);
+        SpriteBatcher!.DrawSprite(testSprite2);
+    }
 
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        SpriteBatcher!.DrawAll(Gl, this);
+        SpriteBatcher!.DrawAll(Gl, this, SpriteAtlas!);
         SpriteBatcher!.Clear();
     }
 
