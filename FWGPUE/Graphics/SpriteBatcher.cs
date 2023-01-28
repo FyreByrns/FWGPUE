@@ -13,7 +13,7 @@ class SpriteBatcher {
     //            |   o   | <--- o is origin
     //            | /     v
     //            B<------C
-    // -0.5,  0.5 '       ' 0.5,  0.5
+    // -0.5,  0.5 ^       ^ 0.5,  0.5
     float[] quadVertices = {
      // positions           uvs
         -0.5f,  0.5f, 1.0f, 0f, 1f, // B
