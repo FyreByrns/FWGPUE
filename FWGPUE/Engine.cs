@@ -6,7 +6,6 @@ using FWGPUE.IO;
 using System.Numerics;
 
 using FWGPUE.Graphics;
-using Silk.NET.OpenAL;
 
 namespace FWGPUE;
 
@@ -146,7 +145,9 @@ class Engine {
         End();
     }
 
-    private unsafe void Load() {
+    private void Load() {
+        DataMarkupFile mainAtlas = new DataMarkupFile("assets/atlases/main.atlas");
+        mainAtlas.Load();
     }
 
     private void Update(double elapsed) {
