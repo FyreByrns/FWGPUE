@@ -183,6 +183,7 @@ class Engine {
 
     public virtual void Tick() {
         testSprite2.Transform.Rotation.Z = TotalSeconds / 10;
+        testSprite.Transform.Rotation.Z = -TotalSeconds / 5;
         SpriteBatcher!.DrawSprite(testSprite);
         SpriteBatcher!.DrawSprite(testSprite2);
     }
