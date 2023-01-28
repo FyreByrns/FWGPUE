@@ -4,7 +4,7 @@ layout(location = 1) in vec2 vUv;
 
 // takes up 4 slots as vec4s
 layout(location = 2) in mat4 vTransform_i;
-// | 			  3
+// |              3
 // |			  4
 // '------------- 5 
 layout(location = 6) in vec4 vUv_i;
