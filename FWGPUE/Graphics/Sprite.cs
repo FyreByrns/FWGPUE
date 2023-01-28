@@ -1,15 +1,15 @@
-﻿namespace FWGPUE.Graphics;
+﻿using System.Numerics;
 
-class Sprite
-{
-    static Random RNG = new();
+namespace FWGPUE.Graphics;
+
+class Sprite {
+    static readonly Random RNG = new();
     public short ID { get; }
 
     public Transform Transform { get; set; } = new();
     public string? Texture { get; set; }
 
-    public Sprite()
-    {
+    public Sprite() {
         ID = unchecked((short)RNG.Next(0, short.MaxValue));
     }
 }

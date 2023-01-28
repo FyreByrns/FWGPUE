@@ -156,14 +156,14 @@ class Engine {
         Texture = "smiley",
         Transform = {
             Position = new(-37, 1, 0),
-            Scale = new(70, 70, 1)
+            Scale = new(0.5f)
         }
     };
     Sprite testSprite2 = new Sprite() {
-        Texture = "closesmiley",
+        Texture = "hello",
         Transform = {
             Position = new(37, 1, 0),
-            Scale = new(70, 70, 1)
+            Scale = new(2)
         }
     };
     private void Update(double elapsed) {
@@ -182,6 +182,7 @@ class Engine {
     }
 
     public virtual void Tick() {
+        testSprite2.Transform.Rotation.Z = TotalSeconds / 10;
         SpriteBatcher!.DrawSprite(testSprite);
         SpriteBatcher!.DrawSprite(testSprite2);
     }
