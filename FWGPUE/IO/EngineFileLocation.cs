@@ -20,18 +20,27 @@
             return File.Exists(FullPath);
         }
 
-        public EngineFileLocation(string relativePath, char seperator = '/') {
-            relativePath = relativePath.ToLower(); // all locations should be lowercase
-            string[] fullRelativePath = relativePath.Split(seperator);
-            string[] directoryRelativePath = fullRelativePath[..^1];
-            Name = fullRelativePath[^1];
+        public EngineFileLocation(string[] directoryPath, string filename) {
+            // convert all strings to lowercase
+            filename = filename.ToLower();
+            for (int i = 0; i < directoryPath.Length; i++) {
+                directoryPath[i] = directoryPath[i].ToLower();
+            }
 
-            Path = new string[directoryRelativePath.Length];
-            Array.Copy(directoryRelativePath, Path, directoryRelativePath.Length);
+            Path = directoryPath;
+            Name = filename;
         }
+        public EngineFileLocation(string relativePath, char seperator = '/') 
+            : this(relativePath.Split(seperator)[..^1], // directory path is all strings up to the last
+                   relativePath.Split(seperator)[^1] // file name is the last string
+                  ) { }
 
         public static implicit operator EngineFileLocation(string path) {
             return new EngineFileLocation(path);
+        }
+
+        public override string ToString() {
+            return FullPath;
         }
     }
 }
