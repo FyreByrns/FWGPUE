@@ -20,6 +20,7 @@ class Engine {
     }
     #endregion static helper methods
 
+    public GL? Gl { get; protected set; }
     public IWindow? Window { get; protected set; }
 
     #region input
@@ -81,9 +82,8 @@ class Engine {
     public float TickTimer { get; protected set; }
     public float TickTime => 1f / Config.TickRate;
 
-    public GL? Gl { get; protected set; }
-    public Camera Camera { get; set; }
-    public SpriteBatcher SpriteBatcher { get; protected set; }
+    public Camera? Camera { get; set; }
+    public SpriteBatcher? SpriteBatcher { get; protected set; }
 
     public bool ShutdownComplete { get; private set; } = false;
 
@@ -159,31 +159,13 @@ class Engine {
 
         Log.Inane(TickTimer);
         while (TickTimer > TickTime) {
-            Log.Inane("ticked");
             Tick();
             TickTimer -= TickTime;
         }
     }
 
-    Sprite testSprite = new Sprite() {
-        Transform = new Transform() {
-            Scale = new Vector3(10f),
-            Position = new Vector3(0, 0, 1),
-        }
-    };
-    public virtual void Tick() {
-        float camXChange, camYChange;
-        camXChange = camYChange = 0;
-        if (KeyDown(Key.Left)) { camXChange++; }
-        if (KeyDown(Key.Right)) { camXChange--; }
-        if (KeyDown(Key.Up)) { camYChange--; }
-        if (KeyDown(Key.Down)) { camYChange++; }
+    public virtual void Tick() { }
 
-        Camera.LerpPosition(Camera.Position, Camera.Position - new Vector3(camXChange * 20, camYChange * 20, 0), TickTime);
-
-        testSprite.Transform.Rotation = new Vector3(0, 0, TotalSeconds);
-        SpriteBatcher.DrawSprite(testSprite);
-    }
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
