@@ -1,8 +1,6 @@
 ﻿using Silk.NET.OpenGL;
 using FWGPUE.IO;
 using System.Numerics;
-using Shader = FWGPUE.Graphics.Shader;
-using Silk.NET.SDL;
 
 namespace FWGPUE.Graphics;
 
