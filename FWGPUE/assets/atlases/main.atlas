@@ -1,3 +1,4 @@
+Name = Main
 # image data for atlas #
 Spritesheet = s[ main.png ]
 # sprite definitions #
