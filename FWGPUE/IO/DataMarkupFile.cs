@@ -1,8 +1,11 @@
 ﻿using System.Text;
-using TT = FWGPUE.IO.TokenType;
+using TT = FWGPUE.IO.DataMarkupFile.TokenType;
 
-namespace FWGPUE.IO {
-    enum TokenType {
+namespace FWGPUE.IO;
+class DataMarkupFile : EngineFile {
+
+    #region parsing
+    public enum TokenType {
         None = 0,
 
         #region tokens used only for parsing
@@ -17,15 +20,14 @@ namespace FWGPUE.IO {
         Array,
         #endregion tokens used for both parsing and as value types
     }
-
-    class Token {
+    class InternalToken {
         public TokenType Type { get; set; }
         public string? Name { get; set; }
         public string? Value { get; set; }
         public List<string> Values { get; } = new();
 
-        public Token() { }
-        public Token(string value) {
+        public InternalToken() { }
+        public InternalToken(string value) {
             Type = TokenHelper.Parse(value);
             Value = value;
         }
@@ -53,12 +55,12 @@ namespace FWGPUE.IO {
             { "]", TT.p_arrayOrStringEnd },
         };
 
-        public static IEnumerable<Token> Collapse(Queue<Token> tokens) {
-            Token? current = null;
+        public static IEnumerable<InternalToken> Collapse(Queue<InternalToken> tokens) {
+            InternalToken? current = null;
             bool moveNext() { try { return tokens.TryDequeue(out current); } catch { Log.Warn("couldn't move next while tokenizing"); } return false; }
 
             while (moveNext()) {
-                Token result = new Token();
+                InternalToken result = new InternalToken();
                 Log.Info(current!);
                 result.Type = current!.Type;
 
@@ -126,60 +128,72 @@ namespace FWGPUE.IO {
             return TT.None;
         }
     }
+    InternalToken[]? Tokens { get; set; }
+    #endregion parsing
 
-    class DataMarkupFile : EngineFile {
-        public Token[]? Tokens { get; set; }
-
-        protected override void ReadData(byte[] data) {
-            // parse data to an ascii string
-            string contents = Encoding.ASCII.GetString(data)
-                .Replace("\r\n", " ")
-                .Replace("\t", "");
-            // tokenize
-            string[] split = contents.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            Queue<Token> tokens = new();
-
-            for (int i = 0; i < split.Length; i++) {
-                Token current = new(split[i]);
-                tokens.Enqueue(current);
-            }
-
-            Tokens = TokenHelper.Collapse(tokens).ToArray();
-            foreach (Token token in Tokens) {
-                Log.Info(token);
+    public record Token(string Name, TokenContents Contents);
+    public record TokenContents(string Value, params string[] Collection);
+    public Token GetToken(string name) {
+        foreach (InternalToken token in Tokens!) {
+            if (token.Name == name) {
+                return new(token.Name, new(token.Value ?? "", token.Values.ToArray()));
             }
         }
 
-        protected override byte[] SaveData() {
-            List<byte> data = new();
-            void addData(string s) {
-                data.AddRange(Encoding.ASCII.GetBytes(s));
-            }
-
-            foreach (Token token in Tokens!) {
-                switch (token.Type) {
-                    case TT.Comment: {
-                            addData($"# {token.Value} #\r\n");
-                            break;
-                        }
-                    case TT.String: {
-                            addData($"{token.Name} = s[ {token.Value} ]\r\n");
-                            break;
-                        }
-                    case TT.Array: {
-                            addData($"{token.Name} = [ ");
-                            foreach (string s in token.Values) {
-                                addData($"{s} ");
-                            }
-                            addData("]\r\n");
-                            break;
-                        }
-                }
-            }
-
-            return data.ToArray();
-        }
-
-        public DataMarkupFile(EngineFileLocation header) : base(header) { }
+        Log.Warn($"couldn't find {name} in token collection");
+        return new("", new("", ""));
     }
+
+    #region save / load
+    protected override void ReadData(byte[] data) {
+        // parse data to an ascii string
+        string contents = Encoding.ASCII.GetString(data)
+            .Replace("\r\n", " ")
+            .Replace("\t", "");
+        // tokenize
+        string[] split = contents.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Queue<InternalToken> tokens = new();
+
+        for (int i = 0; i < split.Length; i++) {
+            InternalToken current = new(split[i]);
+            tokens.Enqueue(current);
+        }
+
+        Tokens = TokenHelper.Collapse(tokens).ToArray();
+        foreach (InternalToken token in Tokens) {
+            Log.Info(token);
+        }
+    }
+    protected override byte[] SaveData() {
+        List<byte> data = new();
+        void addData(string s) {
+            data.AddRange(Encoding.ASCII.GetBytes(s));
+        }
+
+        foreach (InternalToken token in Tokens!) {
+            switch (token.Type) {
+                case TT.Comment: {
+                        addData($"# {token.Value} #\r\n");
+                        break;
+                    }
+                case TT.String: {
+                        addData($"{token.Name} = s[ {token.Value} ]\r\n");
+                        break;
+                    }
+                case TT.Array: {
+                        addData($"{token.Name} = [ ");
+                        foreach (string s in token.Values) {
+                            addData($"{s} ");
+                        }
+                        addData("]\r\n");
+                        break;
+                    }
+            }
+        }
+
+        return data.ToArray();
+    }
+    #endregion save / load
+
+    public DataMarkupFile(EngineFileLocation header) : base(header) { }
 }
