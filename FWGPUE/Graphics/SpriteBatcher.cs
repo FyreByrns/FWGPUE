@@ -16,13 +16,13 @@ class SpriteBatcher {
     // -0.5,  0.5 ^       ^ 0.5,  0.5
     float[] quadVertices = {
      // positions           uvs
-        -0.5f,  0.5f, 1.0f, 0f, 1f, // B
-        -0.5f, -0.5f, 1.0f, 0f, 0f, // A
-         0.5f, -0.5f, 1.0f, 1f, 0f, // D
+        -0.5f,  0.5f, 1.0f, 0f, 0f, // B
+        -0.5f, -0.5f, 1.0f, 0f, 1f, // A
+         0.5f, -0.5f, 1.0f, 1f, 1f, // D
                                     
-        -0.5f,  0.5f, 1.0f, 0f, 1f, // B
-         0.5f, -0.5f, 1.0f, 1f, 0f, // D
-         0.5f,  0.5f, 1.0f, 1f, 1f, // C
+        -0.5f,  0.5f, 1.0f, 0f, 0f, // B
+         0.5f, -0.5f, 1.0f, 1f, 1f, // D
+         0.5f,  0.5f, 1.0f, 1f, 0f, // C
     };
     uint quadVAO;
     uint quadVBO;
