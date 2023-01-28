@@ -14,6 +14,9 @@ class Texture : IDisposable
     public TextureTarget Target { get; }
     public InternalFormat Format { get; }
 
+    public int Width { get; }
+    public int Height { get; }
+
     public void Bind(TextureUnit slot = TextureUnit.Texture0)
     {
         Gl.ActiveTexture(slot);
@@ -41,6 +44,9 @@ class Texture : IDisposable
         file.Load();
         using (var img = Image.Load<Rgba32>(file.Data))
         {
+            Width = img.Width;
+            Height = img.Height;
+
             unsafe
             {
                 Gl.TexImage2D(Target, 0, Format, (uint)img.Width, (uint)img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
