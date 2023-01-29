@@ -9,6 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Pie.Freetype" Version="0.6.0" />
 		<PackageReference Include="Silk.NET" Version="2.16.0" />
 		<PackageReference Include="Silk.NET.GLFW" Version="2.16.0" />
 		<PackageReference Include="Silk.NET.Input" Version="2.16.0" />
@@ -22,8 +23,5 @@
 		<None Include="assets\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="assets\atlases\" />
 	</ItemGroup>
 </Project>
