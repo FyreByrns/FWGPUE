@@ -122,6 +122,9 @@ class Engine {
 
         Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
 
+        Gl.Enable(GLEnum.Blend);
+        Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
         Camera = new Camera(new Vector2(0), 100);
         SpriteBatcher = new SpriteBatcher(Gl);
 
@@ -155,14 +158,12 @@ class Engine {
     Sprite testSprite = new Sprite() {
         Texture = "smiley",
         Transform = {
-            Position = new(-37, 1, 0),
             Scale = new(0.5f)
         }
     };
     Sprite testSprite2 = new Sprite() {
         Texture = "hello",
         Transform = {
-            Position = new(37, 1, 0),
             Scale = new(2)
         }
     };

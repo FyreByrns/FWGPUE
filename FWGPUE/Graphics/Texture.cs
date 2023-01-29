@@ -29,7 +29,7 @@ class Texture : IDisposable {
         Gl.GenerateMipmap(Target);
     }
 
-    public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgb8) {
+    public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
         Gl = gl;
         Handle = Gl.GenTexture();
         Target = target;
