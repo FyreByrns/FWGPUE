@@ -27,7 +27,7 @@ class SpriteBatcher {
     uint offsetVBO;
     uint uvVBO;
 
-    public List<Sprite> SpritesThisFrame { get; } = new();
+    public List<Sprite> SpritesThisFrame { get; protected set; } = new();
     public HashSet<short> RegisteredSpriteIDs { get; } = new(); // to track which sprites are already being drawn
 
     public Shader Shader { get; set; }
@@ -43,6 +43,8 @@ class SpriteBatcher {
     }
 
     public void DrawAll(GL gl, Engine context, SpriteAtlasFile atlas) {
+        SpritesThisFrame = SpritesThisFrame.OrderBy(x => x.Transform.Position.Z).ToList();
+
         // get offsets
         Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
         for (int i = 0; i < offsets.Length; i++) {
