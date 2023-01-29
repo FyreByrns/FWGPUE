@@ -1,0 +1,10 @@
+Name = Main
+# image data for atlas #
+Spritesheet = s[ main.png ]
+# sprite definitions #
+Sprites = [
+	default     0   0  16  16
+	smiley      16  0 100 100
+	closesmiley 32 30  60  60
+	hello       0  16  19   4
+]
