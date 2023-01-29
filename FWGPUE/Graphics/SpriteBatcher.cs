@@ -48,10 +48,10 @@ class SpriteBatcher {
         for (int i = 0; i < offsets.Length; i++) {
             Sprite sprite = SpritesThisFrame[i];
             var model =
+                Matrix4x4.CreateScale(sprite.Transform.Scale.X * atlas.GetRect(sprite.Texture!).Width, sprite.Transform.Scale.Y * atlas.GetRect(sprite.Texture!).Height, 1) *
                 Matrix4x4.CreateRotationZ(Engine.TurnsToRadians(sprite.Transform.Rotation.Z)) *
                 Matrix4x4.CreateRotationY(Engine.TurnsToRadians(sprite.Transform.Rotation.Y)) *
                 Matrix4x4.CreateRotationX(Engine.TurnsToRadians(sprite.Transform.Rotation.X)) *
-                Matrix4x4.CreateScale(sprite.Transform.Scale.X * atlas.GetRect(sprite.Texture!).Width, sprite.Transform.Scale.Y * atlas.GetRect(sprite.Texture!).Height, 1) *
                 Matrix4x4.CreateTranslation(sprite.Transform.Position);
 
             offsets[i] = model;
