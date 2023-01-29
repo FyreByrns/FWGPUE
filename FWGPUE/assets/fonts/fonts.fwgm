@@ -1,0 +1,11 @@
+# which font is considered the default #
+Default = qaz
+# fonts mapped name to filename #
+Fonts = [
+	qaz 		    qaz.ttf
+	qazitalic 	    qazitalic.ttf
+	rony		    ronysiswadi15.ttf
+	ronybold	    ronysiswadi15bold.ttf
+	turpis		    turpis.ttf
+	turpisitalic    turpisitalic.ttf
+]
