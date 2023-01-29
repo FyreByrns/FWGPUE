@@ -2,6 +2,7 @@
 
 abstract class EngineFile {
     public EngineFileLocation? Location { get; }
+    public bool Loaded { get; protected set; } = false;
 
     public virtual void Save(bool overwrite = true) {
         if (Location == null) {
@@ -33,6 +34,7 @@ abstract class EngineFile {
         if (File.Exists(Location.FullPath)) {
             try {
                 ReadData(File.ReadAllBytes(Location.FullPath));
+                Loaded = true;
             }
             catch (Exception e) {
                 Log.Error($"exception thrown while attempting to load file {Location.Name}: {e.Message}");
