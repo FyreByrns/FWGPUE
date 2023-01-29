@@ -178,9 +178,6 @@ class DataMarkupFile : EngineFile {
         }
 
         Tokens = TokenHelper.Collapse(tokens).ToArray();
-        foreach (InternalToken token in Tokens) {
-            Log.Info(token);
-        }
     }
     protected override byte[] SaveData() {
         List<byte> data = new();
