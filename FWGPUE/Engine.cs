@@ -7,6 +7,9 @@ using System.Numerics;
 
 using FWGPUE.Graphics;
 
+using Pie.Freetype;
+using Pie.Freetype.Native;
+
 namespace FWGPUE;
 
 class Engine {
@@ -85,6 +88,8 @@ class Engine {
     public SpriteBatcher? SpriteBatcher { get; protected set; }
     public SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
+    public FontManager? FontManager { get; protected set; }
+
     public bool ShutdownComplete { get; private set; } = false;
 
     public Config Config { get; }
@@ -126,11 +131,15 @@ class Engine {
         Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         Camera = new Camera(new Vector2(0), 100);
-        SpriteBatcher = new SpriteBatcher(Gl);
 
-        SpriteAtlas = new("assets/atlases/main.atlas");
+        SpriteBatcher = new SpriteBatcher(Gl);
+        SpriteAtlas = new("assets/atlases/main.fwgm");
         SpriteAtlas.Load();
         SpriteAtlas.LoadTexture(Gl);
+
+        FontManager = new FontManager(Gl);
+        FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
+        FontManager.LoadFont(Gl, fonts, 128);
     }
     #endregion initialization
 
@@ -156,15 +165,10 @@ class Engine {
     private void Load() { }
 
     Sprite testSprite = new Sprite() {
-        Texture = "smiley",
-        Transform = {
-            Scale = new(0.5f)
-        }
-    };
-    Sprite testSprite2 = new Sprite() {
         Texture = "hello",
         Transform = {
-            Scale = new(2)
+            Position = new(0, -50, 0),
+            Scale = new(0.1f)
         }
     };
     private void Update(double elapsed) {
@@ -183,17 +187,16 @@ class Engine {
     }
 
     public virtual void Tick() {
-        testSprite2.Transform.Rotation.Z = TotalSeconds / 10;
-        testSprite.Transform.Rotation.Z = -TotalSeconds / 5;
+        //testSprite2.Transform.Rotation.Z = TotalSeconds / 10;
+        //testSprite.Transform.Rotation.Z = -TotalSeconds / 5;
         SpriteBatcher!.DrawSprite(testSprite);
-        SpriteBatcher!.DrawSprite(testSprite2);
     }
 
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
         SpriteBatcher!.DrawAll(Gl, this, SpriteAtlas!);
-        SpriteBatcher!.Clear();
+        FontManager!.DrawText(Gl, this, 0, 0, "Testing! -_qyg_", 8);
     }
 
     public Engine() {

@@ -9,9 +9,9 @@ class SpriteAtlasFile : DataMarkupFile {
     public ByteFile? Spritesheet { get; protected set; }
 
     public record SpriteRect(float X, float Y, float Width, float Height);
-    Dictionary<string, SpriteRect> SpriteDefinitions { get; } = new();
+    public Dictionary<string, SpriteRect> SpriteDefinitions { get; set; } = new();
 
-    public Texture? Texture { get; protected set; }
+    public Texture? Texture { get; set; }
 
     public SpriteRect GetRect(string name) {
         if (SpriteDefinitions.ContainsKey(name)) {

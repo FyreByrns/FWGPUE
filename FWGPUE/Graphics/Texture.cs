@@ -29,6 +29,26 @@ class Texture : IDisposable {
         Gl.GenerateMipmap(Target);
     }
 
+    // todo: cleanup and remove duplicated code
+    public Texture(GL gl, byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
+        Gl = gl;
+        Handle = Gl.GenTexture();
+        Target = target;
+        Format = internalFormat;
+
+        Bind();
+
+        Width = width;
+        Height = height;
+
+        unsafe {
+            fixed (byte* d = data) {
+                Gl.TexImage2D(Target, 0, Format, (uint)Width, (uint)Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, d);
+            }
+        }
+
+        SetParameters();
+    }
     public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
         Gl = gl;
         Handle = Gl.GenTexture();

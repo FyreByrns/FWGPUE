@@ -94,12 +94,12 @@ class SpriteBatcher {
         gl.BindVertexArray(quadVAO);
         gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
 
-        SpritesThisFrame.Clear();
-        RegisteredSpriteIDs.Clear();
+        Clear();
     }
 
     public void Clear() {
         SpritesThisFrame.Clear();
+        RegisteredSpriteIDs.Clear();
     }
 
     public SpriteBatcher(GL gl) {
