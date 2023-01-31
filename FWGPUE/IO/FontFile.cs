@@ -8,6 +8,7 @@ namespace FWGPUE.IO;
 class FontFile : DataMarkupFile {
     public string DefaultFont { get; protected set; }
     public ByteFile Default => FontData[DefaultFont];
+    public string[] Fonts { get; protected set; }
 
     public Dictionary<string, ByteFile> FontData { get; } = new();
 
@@ -24,10 +25,10 @@ class FontFile : DataMarkupFile {
         }
 
         if (TryGetToken("Fonts", out var fonts) && fonts is not null) {
-            string[] fontCollection = fonts.Contents.Collection;
-            for (int i = 0; i < fontCollection.Length; i += 2) {
-                string fontName = fontCollection[i];
-                string fontPath = fontCollection[i + 1];
+            Fonts = fonts.Contents.Collection;
+            for (int i = 0; i < Fonts.Length; i += 2) {
+                string fontName = Fonts[i];
+                string fontPath = Fonts[i + 1];
 
                 ByteFile fontFile = new ByteFile(new(Location!.Path, fontPath));
                 if (fontFile.Location!.Exists()) {

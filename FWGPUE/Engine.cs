@@ -137,7 +137,15 @@ class Engine {
         SpriteAtlas.Load();
         SpriteAtlas.LoadTexture(Gl);
 
-        FontManager = new FontManager(Gl);
+        testSprite = new Sprite(SpriteAtlas!) {
+            Texture = "hello",
+            Transform = {
+                Position = new(0, 0, 0),
+                Scale = new(1)
+            }
+        };
+
+        FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
         FontManager.LoadFont(Gl, fonts, 128);
     }
@@ -164,13 +172,7 @@ class Engine {
 
     private void Load() { }
 
-    Sprite testSprite = new Sprite() {
-        Texture = "hello",
-        Transform = {
-            Position = new(0, -50, 0),
-            Scale = new(0.1f)
-        }
-    };
+    Sprite testSprite;
     private void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
         TotalSeconds += LastFrameTime;
@@ -189,14 +191,17 @@ class Engine {
     public virtual void Tick() {
         //testSprite2.Transform.Rotation.Z = TotalSeconds / 10;
         //testSprite.Transform.Rotation.Z = -TotalSeconds / 5;
+
         SpriteBatcher!.DrawSprite(testSprite);
     }
 
     private void Render(double obj) {
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        SpriteBatcher!.DrawAll(Gl, this, SpriteAtlas!);
-        FontManager!.DrawText(Gl, this, 0, 0, "Testing! -_qyg_", 8);
+        FontManager!.DrawText(SpriteBatcher!, 0, 0, "hello!", 7);
+        SpriteBatcher!.DrawAll(Gl, this);
+
+        SpriteBatcher.Clear();
     }
 
     public Engine() {

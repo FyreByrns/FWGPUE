@@ -107,5 +107,6 @@ class SpriteAtlasFile : DataMarkupFile {
         }
     }
 
+    public SpriteAtlasFile() : base("") { }
     public SpriteAtlasFile(EngineFileLocation header) : base(header) { }
 }

@@ -27,7 +27,7 @@ class SpriteBatcher {
     uint offsetVBO;
     uint uvVBO;
 
-    public List<Sprite> SpritesThisFrame { get; protected set; } = new();
+    public Dictionary<SpriteAtlasFile, List<Sprite>> SpritesByAtlas { get; } = new();
     public HashSet<short> RegisteredSpriteIDs { get; } = new(); // to track which sprites are already being drawn
 
     public Shader Shader { get; set; }
@@ -36,69 +36,74 @@ class SpriteBatcher {
     /// Register sprite for drawing this frame.
     /// </summary>
     public void DrawSprite(Sprite sprite) {
+        if (!SpritesByAtlas.ContainsKey(sprite.Atlas)) {
+            SpritesByAtlas[sprite.Atlas] = new List<Sprite>();
+        }
+
         if (!RegisteredSpriteIDs.Contains(sprite.ID)) {
-            SpritesThisFrame.Add(sprite);
+            SpritesByAtlas[sprite.Atlas].Add(sprite);
             RegisteredSpriteIDs.Add(sprite.ID);
         }
     }
 
-    public void DrawAll(GL gl, Engine context, SpriteAtlasFile atlas) {
-        SpritesThisFrame = SpritesThisFrame.OrderBy(x => x.Transform.Position.Z).ToList();
+    public void DrawAll(GL gl, Engine context) {
+        foreach (SpriteAtlasFile atlas in SpritesByAtlas.Keys) {
+            List<Sprite> SpritesThisFrame = SpritesByAtlas[atlas];
+            SpritesThisFrame = SpritesThisFrame.OrderBy(x => x.Transform.Position.Z).ToList();
 
-        // get offsets
-        Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
-        for (int i = 0; i < offsets.Length; i++) {
-            Sprite sprite = SpritesThisFrame[i];
-            var model =
-                Matrix4x4.CreateScale(sprite.Transform.Scale.X * atlas.GetRect(sprite.Texture!).Width, sprite.Transform.Scale.Y * atlas.GetRect(sprite.Texture!).Height, 1) *
-                Matrix4x4.CreateRotationZ(Engine.TurnsToRadians(sprite.Transform.Rotation.Z)) *
-                Matrix4x4.CreateRotationY(Engine.TurnsToRadians(sprite.Transform.Rotation.Y)) *
-                Matrix4x4.CreateRotationX(Engine.TurnsToRadians(sprite.Transform.Rotation.X)) *
-                Matrix4x4.CreateTranslation(sprite.Transform.Position);
+            // get offsets
+            Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
+            for (int i = 0; i < offsets.Length; i++) {
+                Sprite sprite = SpritesThisFrame[i];
+                var model =
+                    Matrix4x4.CreateScale(sprite.Transform.Scale.X * atlas.GetRect(sprite.Texture!).Width, sprite.Transform.Scale.Y * atlas.GetRect(sprite.Texture!).Height, 1) *
+                    Matrix4x4.CreateRotationZ(Engine.TurnsToRadians(sprite.Transform.Rotation.Z)) *
+                    Matrix4x4.CreateRotationY(Engine.TurnsToRadians(sprite.Transform.Rotation.Y)) *
+                    Matrix4x4.CreateRotationX(Engine.TurnsToRadians(sprite.Transform.Rotation.X)) *
+                    Matrix4x4.CreateTranslation(sprite.Transform.Position);
 
-            offsets[i] = model;
-        }
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
-        unsafe {
-            fixed (Matrix4x4* data = offsets) {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Matrix4x4) * offsets.Length), data, BufferUsageARB.StaticDraw);
+                offsets[i] = model;
             }
-        }
-
-        // get uvs
-        Vector4[] uvs = new Vector4[SpritesThisFrame.Count];
-        for (int i = 0; i < uvs.Length; i++) {
-            Sprite sprite = SpritesThisFrame[i];
-            var rect = atlas.GetRect(sprite.Texture!);
-            uvs[i] = new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
-        }
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
-        unsafe {
-            fixed (Vector4* data = uvs) {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Vector4) * uvs.Length), data, BufferUsageARB.StaticDraw);
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
+            unsafe {
+                fixed (Matrix4x4* data = offsets) {
+                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Matrix4x4) * offsets.Length), data, BufferUsageARB.StaticDraw);
+                }
             }
+
+            // get uvs
+            Vector4[] uvs = new Vector4[SpritesThisFrame.Count];
+            for (int i = 0; i < uvs.Length; i++) {
+                Sprite sprite = SpritesThisFrame[i];
+                var rect = atlas.GetRect(sprite.Texture!);
+                uvs[i] = new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
+            }
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
+            unsafe {
+                fixed (Vector4* data = uvs) {
+                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Vector4) * uvs.Length), data, BufferUsageARB.StaticDraw);
+                }
+            }
+
+            var view = context.Camera!.ViewMatrix;
+            var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 200.0f);
+
+            Shader.Use();
+            Shader.SetUniform("uView", view);
+            Shader.SetUniform("uProjection", projection);
+            Shader.SetUniform("uAtlasSize", new Vector2(atlas.Texture!.Width, atlas.Texture!.Height));
+
+            if (atlas.Texture is not null) {
+                atlas.Texture.Bind();
+            }
+
+            gl.BindVertexArray(quadVAO);
+            gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
         }
-
-        var view = context.Camera!.ViewMatrix;
-        var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 200.0f);
-
-        Shader.Use();
-        Shader.SetUniform("uView", view);
-        Shader.SetUniform("uProjection", projection);
-        Shader.SetUniform("uAtlasSize", new Vector2(atlas.Texture!.Width, atlas.Texture!.Height));
-
-        if (atlas.Texture is not null) {
-            atlas.Texture.Bind();
-        }
-
-        gl.BindVertexArray(quadVAO);
-        gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
-
-        Clear();
     }
 
     public void Clear() {
-        SpritesThisFrame.Clear();
+        SpritesByAtlas.Clear();
         RegisteredSpriteIDs.Clear();
     }
 

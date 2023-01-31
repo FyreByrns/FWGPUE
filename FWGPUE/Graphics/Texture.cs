@@ -30,6 +30,7 @@ class Texture : IDisposable {
     }
 
     // todo: cleanup and remove duplicated code
+    public Texture(GL gl, int width, int height) : this(gl, Array.Empty<byte>(), width, height) { }
     public Texture(GL gl, byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
         Gl = gl;
         Handle = Gl.GenTexture();

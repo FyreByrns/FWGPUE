@@ -61,7 +61,6 @@ class DataMarkupFile : EngineFile {
 
             while (moveNext()) {
                 InternalToken result = new InternalToken();
-                Log.Info(current!);
                 result.Type = current!.Type;
 
                 switch (result.Type) {

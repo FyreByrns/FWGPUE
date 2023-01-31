@@ -50,6 +50,23 @@ class FontManager {
         CharacterLocations { get; } = new();
     public Dictionary<string, Dictionary<int, SpriteAtlasFile>> Atlases { get; } = new();
 
+    void SetFontAtlas(string font, int size, SpriteAtlasFile atlas) {
+        if (!Atlases.ContainsKey(font)) {
+            Atlases[font] = new();
+        }
+        Atlases[font][size] = atlas;
+    }
+    public SpriteAtlasFile? GetFontAtlas(string font, int size) {
+        if (Atlases.ContainsKey(font)) {
+            if (Atlases[font].ContainsKey(size)) {
+                return Atlases[font][size];
+            }
+            Log.Error($"no atlases for {size}/{font}");
+            return null;
+        }
+        Log.Error($"no atlases for {font}");
+        return null;
+    }
 
     void SetFontTexture(string font, int size, Texture texture) {
         if (!Fonts.ContainsKey(font)) {
@@ -58,6 +75,13 @@ class FontManager {
 
         Fonts[font][size] = texture;
     }
+    Texture? GetFontTexture(string font, int size) {
+        if (Fonts.ContainsKey(font) && Fonts[font].ContainsKey(size)) {
+            return Fonts[font][size];
+        }
+        return null;
+    }
+
     void SetCharacterRect(string font, int size, char character, CharacterData rect) {
         if (!CharacterLocations.ContainsKey(font)) {
             CharacterLocations[font] = new();
@@ -68,20 +92,28 @@ class FontManager {
 
         CharacterLocations[font][size][character] = rect;
     }
+    public CharacterData GetCharacterData(string font, int size, char character) {
+        if (CharacterLocations.ContainsKey(font) &&
+            CharacterLocations[font].ContainsKey(size) &&
+            CharacterLocations[font][size].ContainsKey(character)) {
+            return CharacterLocations[font][size][character];
+        }
+        return default;
+    }
 
     void SetupFontAtlas(string font, int size) {
         if (!Atlases.ContainsKey(font)) {
             Atlases[font] = new Dictionary<int, SpriteAtlasFile>();
         }
 
-        SpriteAtlasFile atlas = new("") {
-            Texture = Fonts[font][size]
+        SpriteAtlasFile atlas = new() {
+            Texture = GetFontTexture(font, size)
         };
         foreach (char c in LoadedCharacters) {
             CharacterData cd = CharacterLocations[font][size][c];
             atlas.SpriteDefinitions[$"{c}"] = new SpriteAtlasFile.SpriteRect(cd.X, cd.Y, cd.Advance, cd.Height + cd.BearingY);
         }
-        Atlases[font][size] = atlas;
+        SetFontAtlas(font, size, atlas);
     }
 
     #endregion font data
@@ -100,6 +132,7 @@ class FontManager {
             fontFile.Load();
         }
 
+        // use default font if no default font is specified
         if (font == "") {
             font = fontFile.DefaultFont;
         }
@@ -109,8 +142,10 @@ class FontManager {
             using FreeType freeType = new();
 
             for (int i = 0; i < sizes.Length; i++) {
+                // get font face
                 using Face face = freeType.CreateFace(fontFile.Default.Data, sizes[i]);
 
+                // calculate total size of the character atlas size
                 int totalSize = characters.Length * (face.Size * BetweenCharacterPadding).Squared();
                 int size = (int)MathF.Sqrt(totalSize);
                 Log.Info($"font texture for {sizes[i]}/{font}: {size}*{size}");
@@ -118,14 +153,14 @@ class FontManager {
                 int width = size;
                 int height = size;
 
-                byte[] textureByteData = new byte[width * height * 4];
-                Texture fontTexture = new Texture(gl, textureByteData, width, height);
+                Texture fontTexture = new Texture(gl, width, height);
 
-                // fill bitmap with character data
+                // fill atlas with character data
                 int currentX = 0;
                 int currentY = 0;
                 int maxHeight = 0;
                 for (int character = 0; character < characters.Length; character++) {
+                    // generate character bitmap
                     Character c = face.Characters[characters[character]];
 
                     // if at the end of a row, move to the next row
@@ -139,6 +174,7 @@ class FontManager {
                         }
                     }
 
+                    // copy character bitmap to atlas
                     unsafe {
                         fixed (byte* d = c.Bitmap) {
                             fontTexture.Bind();
@@ -152,14 +188,17 @@ class FontManager {
                                      c.BitmapLeft, c.BitmapTop,
                                      c.Advance));
 
+                    // advance position trackers
+                    currentX += c.Advance + BetweenCharacterPadding;
                     if (maxHeight < c.Height + c.BitmapTop) {
                         maxHeight = c.Height + c.BitmapTop;
                     }
-                    currentX += c.Advance + BetweenCharacterPadding;
                 }
 
-                // create texture from bitmap
+                // successfully loaded all desired characters
                 LoadedCharacters = characters;
+
+                // create texture from bitmap
                 SetFontTexture(font, sizes[i], fontTexture);
                 SetupFontAtlas(font, sizes[i]);
             }
@@ -173,10 +212,10 @@ class FontManager {
 
     #region drawing
 
-    public void DrawText(GL gl, Engine context, float x, float y, string text, int size, float scale = 1) {
-        DrawText(gl, context, context.SpriteBatcher!, x, y, text, size, DefaultFont, scale);
+    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, float scale = 1) {
+        DrawText(batcher, x, y, text, size, DefaultFont, scale);
     }
-    public void DrawText(GL gl, Engine context, SpriteBatcher batcher, float x, float y, string text, int size, string font, float scale = 1) {
+    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, string font, float scale = 1) {
         if (!Fonts.ContainsKey(font)) {
             Log.Error($"no such font: {font}");
             return;
@@ -194,12 +233,10 @@ class FontManager {
         }
         scale *= (float)size / actualSize;
 
-        Dictionary<char, CharacterData> characters = CharacterLocations[font][actualSize];
-
         for (int i = 0; i < text.Length; i++) {
-            CharacterData cd = characters[text[i]];
+            CharacterData cd = GetCharacterData(font, actualSize, text[i]);
 
-            Sprite cSprite = new() {
+            Sprite cSprite = new(GetFontAtlas(font, actualSize)!) {
                 Texture = $"{text[i]}",
                 Transform = {
                     Position = new(x - cd.BearingX * scale, y - ((cd.Height - cd.BearingY) * scale), 1),
@@ -207,15 +244,9 @@ class FontManager {
                 }
             };
             batcher.DrawSprite(cSprite);
-            x += characters[text[i]].Advance * scale;
+            x += cd.Advance * scale;
         }
-
-        batcher.DrawAll(gl, context, Atlases[font][actualSize]);
     }
 
     #endregion drawing
-
-    public FontManager(GL gl) {
-        Atlas = new SpriteAtlasFile("");
-    }
 }
