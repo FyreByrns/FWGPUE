@@ -111,7 +111,7 @@ class FontManager {
         };
         foreach (char c in LoadedCharacters) {
             CharacterData cd = CharacterLocations[font][size][c];
-            atlas.SpriteDefinitions[$"{c}"] = new SpriteAtlasFile.SpriteRect(cd.X, cd.Y, cd.Advance, cd.Height + cd.BearingY);
+            atlas.SpriteDefinitions[$"{c}"] = new SpriteAtlasFile.SpriteRect(cd.X - cd.BearingX, cd.Y - (cd.Height - cd.BearingY), cd.Advance, cd.Height + cd.BearingY);
         }
         SetFontAtlas(font, size, atlas);
     }
@@ -239,7 +239,7 @@ class FontManager {
             Sprite cSprite = new(GetFontAtlas(font, actualSize)!) {
                 Texture = $"{text[i]}",
                 Transform = {
-                    Position = new(x - cd.BearingX * scale, y - ((cd.Height - cd.BearingY) * scale), 1),
+                    Position = new(x, y , 1),
                     Scale = new(scale, scale, 1),
                 }
             };
