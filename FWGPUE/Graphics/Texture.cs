@@ -26,7 +26,7 @@ class Texture : IDisposable {
         Gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
         Gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
         Gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
-        Gl.GenerateMipmap(Target);
+        //Gl.GenerateMipmap(Target);
     }
 
     // todo: cleanup and remove duplicated code
