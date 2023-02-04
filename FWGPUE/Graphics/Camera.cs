@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Input;
+using Silk.NET.OpenAL;
 using System.Numerics;
 
 namespace FWGPUE.Graphics;
@@ -40,6 +41,9 @@ class Camera {
     public Vector3 Up => Vector3.Cross(Direction, Right);
 
     public Matrix4x4 ViewMatrix => Matrix4x4.CreateLookAt(Position, Target, Up);
+    public Matrix4x4 ProjectionMatrix(float width, float height) =>
+        Matrix4x4.CreateOrthographic(width, height, 0.1f, 200f);
+        //Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), width / height, 0.1f, 200.0f);
     #endregion projection stuff
 
     public Camera(Vector2 position, float height) {

@@ -1,5 +1,5 @@
 # which font is considered the default #
-Default = turpis
+Default = qaz
 # fonts mapped name to filename #
 Fonts = [
 	qaz 		    qaz.ttf

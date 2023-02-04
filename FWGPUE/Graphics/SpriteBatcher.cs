@@ -86,7 +86,7 @@ class SpriteBatcher {
             }
 
             var view = context.Camera!.ViewMatrix;
-            var projection = Matrix4x4.CreatePerspectiveFieldOfView(Engine.DegreesToRadians(45.0f), (float)context.Config.ScreenWidth / context.Config.ScreenHeight, 0.1f, 200.0f);
+            var projection = context.Camera!.ProjectionMatrix(context.Config.ScreenWidth, context.Config.ScreenHeight);
 
             Shader.Use();
             Shader.SetUniform("uView", view);
