@@ -59,4 +59,6 @@ abstract class Scene {
 
         context.DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.Instance.ScreenHeight * 0.98f), FSColor.Tan);
     }
+
+    public virtual void Render(Engine context) { }
 }

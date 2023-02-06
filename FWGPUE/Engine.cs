@@ -252,6 +252,8 @@ class Engine {
         FontRenderer?.End();
         TextThisFrame.Clear();
 
+        CurrentScene?.Render(this);
+
         ImGuiController.Render();
     }
 
