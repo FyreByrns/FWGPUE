@@ -119,6 +119,9 @@ class Engine {
         Window.Update += Update;
         Window.Render += Render;
         Window.Closing += Closing;
+
+        Window.FramebufferResize += newSize => Gl!.Viewport(newSize);
+
         Window.Initialize();
     }
 
