@@ -4,13 +4,17 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using FWGPUE.IO;
 using System.Numerics;
+using FontStashSharp;
 
 using FWGPUE.Graphics;
 
-using Pie.Freetype;
-using Pie.Freetype.Native;
-
 namespace FWGPUE;
+abstract class Scene {
+    public abstract void Load(Engine context);
+    public abstract void Unload(Engine contex);
+
+    public abstract void Tick(Engine context);
+}
 
 class Engine {
     #region static helper methods
@@ -103,6 +107,21 @@ class Engine {
     public Vector2 MousePosition() {
         return Input!.Mice.First().Position;
     }
+    public Vector2 WorldSpaceMousePosition() {
+        // get inverse transformation from world to screen
+        Matrix4x4 projection = Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
+        projection *= Camera!.ViewMatrix;
+        Matrix4x4.Invert(projection, out projection);
+
+        // create screen space mouse position
+        Vector4 screenSpaceMouse = new(
+            2.0f * ((MousePosition().X - 0) / (Config.ScreenWidth)) - 1.0f,
+            1.0f - (2.0f * (MousePosition().Y / Config.ScreenHeight)),
+            1, 1);
+        // transform it back to world space
+        Vector4 worldSpaceMouse = Vector4.Transform(screenSpaceMouse, projection);
+        return new(worldSpaceMouse.X, worldSpaceMouse.Y);
+    }
 
     public bool KeyPressedWithinTime(Key key, float secondsSincePress) {
         return KeyTimers![(int)key] <= secondsSincePress;
@@ -133,11 +152,17 @@ class Engine {
     public float TickTimer { get; protected set; }
     public float TickTime => 1f / Config.TickRate;
 
+    public Scene CurrentScene { get; protected set; }
+    public Scene NextScene { get; protected set; }
+    public bool WaitingToChangeScenes { get; protected set; }
+
     public Camera? Camera { get; set; }
     public SpriteBatcher? SpriteBatcher { get; protected set; }
     public SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
     public FontManager? FontManager { get; protected set; }
+    public FontRenderer FontRenderer { get; protected set; }
+    public FontSystem FontSystem { get; protected set; }
 
     public bool ShutdownComplete { get; private set; } = false;
 
@@ -187,7 +212,7 @@ class Engine {
         Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
 
         Gl.Enable(GLEnum.Multisample);
-        
+
         Gl.Enable(GLEnum.Blend);
         Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
@@ -208,7 +233,16 @@ class Engine {
 
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
-        FontManager.LoadFont(Gl, fonts, 128);
+        FontManager.LoadFont(Gl, fonts, 20);
+
+        FontSystem = new FontSystem(new() {
+            FontResolutionFactor = 2,
+            KernelWidth = 2,
+            KernelHeight = 2
+        });
+        FontSystem.AddFont(FontManager.GetFontData(FontManager.DefaultFont));
+
+        FontRenderer = new FontRenderer(Gl);
     }
     #endregion initialization
 
@@ -252,23 +286,20 @@ class Engine {
     }
 
     public virtual void Tick() {
-        // get inverse transformation from world to screen
-        Matrix4x4 projection = Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
-        projection *= Camera!.ViewMatrix;
-        Matrix4x4.Invert(projection, out projection);
+        if (CurrentScene == null) {
+            //Window!.Close();
+        }
 
-        // create screen space mouse position
-        Vector4 screenSpaceMouse = new(
-            2.0f * ((MousePosition().X - 0) / (Config.ScreenWidth)) - 1.0f,
-            1.0f - (2.0f * (MousePosition().Y / Config.ScreenHeight)),
-            1, 1);
-        // transform it back to world space
-        Vector4 worldSpaceMouse = Vector4.Transform(screenSpaceMouse, projection);
+        CurrentScene?.Tick(this);
 
-        testSprite.Transform.Rotation.Z += TickTime/10f;
+        if (WaitingToChangeScenes) {
+            CurrentScene?.Unload(this);
+            CurrentScene = NextScene;
+            CurrentScene?.Load(this);
+        }
+
+        testSprite.Transform.Rotation.Z += TickTime / 10f;
         SpriteBatcher!.DrawSprite(testSprite);
-
-        FontManager!.DrawText(SpriteBatcher!, worldSpaceMouse!.X, worldSpaceMouse!.Y, $"{worldSpaceMouse!.X:0.##}, {worldSpaceMouse!.Y:0.##}", 20);
     }
 
     private void Render(double obj) {
@@ -276,6 +307,12 @@ class Engine {
 
         SpriteBatcher!.DrawAll(Gl, this);
         SpriteBatcher.Clear();
+
+        var font = FontSystem.GetFont(64);
+
+        FontRenderer.Begin(Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight));
+        font.DrawText(FontRenderer, $"{MousePosition()}", MousePosition(), FSColor.White, new(1, 1), 0);
+        FontRenderer.End();
     }
 
     public Engine() {

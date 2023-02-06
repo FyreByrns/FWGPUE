@@ -3,12 +3,12 @@ using FWGPUE.IO;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Silk.NET.Core.Native;
 
 namespace FWGPUE.Graphics;
 
-class Texture : IDisposable {
+class Texture : GLObject, IDisposable {
     public uint Handle { get; }
-    public GL Gl { get; }
 
     public TextureTarget Target { get; }
     public InternalFormat Format { get; }
@@ -29,10 +29,27 @@ class Texture : IDisposable {
         //Gl.GenerateMipmap(Target);
     }
 
+    public unsafe void SetData(System.Drawing.Rectangle bounds, byte[] data) {
+        Bind();
+        fixed (byte* ptr = data) {
+            Gl.TexSubImage2D(
+            target: TextureTarget.Texture2D,
+            level: 0,
+            xoffset: bounds.Left,
+            yoffset: bounds.Top,
+            width: (uint)bounds.Width,
+            height: (uint)bounds.Height,
+            format: PixelFormat.Rgba,
+            type: PixelType.UnsignedByte,
+            pixels: ptr
+        );
+        }
+    }
+
     // todo: cleanup and remove duplicated code
     public Texture(GL gl, int width, int height) : this(gl, Array.Empty<byte>(), width, height) { }
-    public Texture(GL gl, byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
-        Gl = gl;
+    public Texture(GL gl, byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba)
+        : base(gl) {
         Handle = Gl.GenTexture();
         Target = target;
         Format = internalFormat;
@@ -50,8 +67,8 @@ class Texture : IDisposable {
 
         SetParameters();
     }
-    public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
-        Gl = gl;
+    public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba)
+        : base(gl) {
         Handle = Gl.GenTexture();
         Target = target;
         Format = internalFormat;

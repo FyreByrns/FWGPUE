@@ -19,6 +19,7 @@ class FontManager {
     public string DefaultFont { get; protected set; }
     public string LoadedCharacters { get; protected set; }
     public SpriteAtlasFile Atlas { get; protected set; }
+    public FontFile FontFile { get; protected set; }
 
     Shader Shader { get; }
     uint vao;
@@ -26,13 +27,13 @@ class FontManager {
 
     float[] quadVertices = {
      // positions           uvs
-        -0.5f,  0.5f, 1.0f, 0f, 0f, // B
-        -0.5f, -0.5f, 1.0f, 0f, 1f, // A
-         0.5f, -0.5f, 1.0f, 1f, 1f, // D
+        0f,  1f, 1.0f, 0f, 0f, // B
+        0f, 0f, 1.0f, 0f, 1f, // A
+         1f, 0f, 1.0f, 1f, 1f, // D
                                     
-        -0.5f,  0.5f, 1.0f, 0f, 0f, // B
-         0.5f, -0.5f, 1.0f, 1f, 1f, // D
-         0.5f,  0.5f, 1.0f, 1f, 0f, // C
+        0f,  1f, 1.0f, 0f, 0f, // B
+         1f, 0f, 1.0f, 1f, 1f, // D
+         1f,  1f, 1.0f, 1f, 0f, // C
     };
 
     #region font data
@@ -111,9 +112,13 @@ class FontManager {
         };
         foreach (char c in LoadedCharacters) {
             CharacterData cd = CharacterLocations[font][size][c];
-            atlas.SpriteDefinitions[$"{c}"] = new SpriteAtlasFile.SpriteRect(cd.X - cd.BearingX, cd.Y - (cd.Height - cd.BearingY), cd.Advance, cd.Height + cd.BearingY);
+            atlas.SpriteDefinitions[$"{c}"] = new SpriteAtlasFile.SpriteRect(cd.X, cd.Y, cd.Advance, cd.Height + cd.BearingY);
         }
         SetFontAtlas(font, size, atlas);
+    }
+
+    public byte[] GetFontData(string font) {
+        return FontFile.FontData[font].Data;
     }
 
     #endregion font data
@@ -128,6 +133,7 @@ class FontManager {
         LoadFont(gl, fontFile, fontFile.DefaultFont, PrintableAsciiCharacters, sizes);
     }
     public void LoadFont(GL gl, FontFile fontFile, string font, string characters, params int[] sizes) {
+        FontFile = fontFile;
         if (!fontFile.Loaded) {
             fontFile.Load();
         }
@@ -163,8 +169,10 @@ class FontManager {
                     // generate character bitmap
                     Character c = face.Characters[characters[character]];
 
+                    Log.Info($"{characters[character]}: {c.Width}*{c.Height}, ->{c.Advance}, {c.BitmapLeft}/{c.BitmapTop}");
+
                     // if at the end of a row, move to the next row
-                    if (currentX + c.Width >= width) {
+                    if (currentX + c.Advance + BetweenCharacterPadding >= width) {
                         currentX = 0;
                         currentY += maxHeight + BetweenCharacterPadding;
 
@@ -212,10 +220,10 @@ class FontManager {
 
     #region drawing
 
-    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, float scale = 1) {
-        DrawText(batcher, x, y, text, size, DefaultFont, scale);
+    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, float screenWidth, float screenHeight, float scale = 1) {
+        DrawText(batcher, x, y, text, size, DefaultFont, screenWidth, screenHeight, scale);
     }
-    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, string font, float scale = 1) {
+    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, string font, float screenWidth, float screenHeight, float scale = 1) {
         if (!Fonts.ContainsKey(font)) {
             Log.Error($"no such font: {font}");
             return;
@@ -235,11 +243,10 @@ class FontManager {
 
         for (int i = 0; i < text.Length; i++) {
             CharacterData cd = GetCharacterData(font, actualSize, text[i]);
-
             Sprite cSprite = new(GetFontAtlas(font, actualSize)!) {
                 Texture = $"{text[i]}",
                 Transform = {
-                    Position = new(x, y , 1),
+                    Position = new(x - cd.BearingX * scale/(screenWidth/screenHeight), y - (cd.Height - cd.BearingY) * scale/(screenWidth/screenHeight), 1),
                     Scale = new(scale, scale, 1),
                 }
             };
