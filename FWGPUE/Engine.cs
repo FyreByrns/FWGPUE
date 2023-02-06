@@ -7,14 +7,9 @@ using System.Numerics;
 using FontStashSharp;
 
 using FWGPUE.Graphics;
+using FWGPUE.Scenes;
 
 namespace FWGPUE;
-abstract class Scene {
-    public abstract void Load(Engine context);
-    public abstract void Unload(Engine contex);
-
-    public abstract void Tick(Engine context);
-}
 
 class Engine {
     #region static helper methods
@@ -160,9 +155,38 @@ class Engine {
     public SpriteBatcher? SpriteBatcher { get; protected set; }
     public SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
+    #region text drawing
+
     public FontManager? FontManager { get; protected set; }
     public FontRenderer FontRenderer { get; protected set; }
     public FontSystem FontSystem { get; protected set; }
+
+    public enum TextAlignment {
+        None = 0,
+
+        TopLeft,
+        MiddleLeft,
+        BottomLeft,
+
+        TopMiddle,
+        MiddleMiddle,
+        BottomMiddle,
+
+        TopRight,
+        MiddleRight,
+        BottomRight,
+
+        Normal = MiddleLeft,
+        Center = MiddleMiddle,
+    }
+    public record TextDrawData(string text, Vector2 location, FSColor colour, float size, Vector2 scale, float rotation, TextAlignment alignment);
+    public HashSet<TextDrawData> TextThisFrame = new();
+
+    public void DrawText(string text, Vector2 location, FSColor colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
+        TextThisFrame.Add(new(text, location, colour, size, new(1, 1), 0, alignment));
+    }
+
+    #endregion text drawing
 
     public bool ShutdownComplete { get; private set; } = false;
 
@@ -171,6 +195,8 @@ class Engine {
         InitWindow();
         InitInput();
         InitGraphics();
+
+        ChangeToScene(new StartupSplash());
     }
 
     protected void InitWindow() {
@@ -250,6 +276,11 @@ class Engine {
     }
     #endregion initialization
 
+    public void ChangeToScene(Scene scene) {
+        WaitingToChangeScenes = true;
+        NextScene = scene;
+    }
+
     protected void MainLoop() {
         Window!.Run();
     }
@@ -269,7 +300,6 @@ class Engine {
 
     private void Load() { }
 
-    Sprite testSprite;
     private void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
         TotalSeconds += LastFrameTime;
@@ -288,8 +318,8 @@ class Engine {
     }
 
     public virtual void Tick() {
-        if (CurrentScene == null) {
-            //Window!.Close();
+        if (CurrentScene == null && !WaitingToChangeScenes) {
+            Window!.Close();
         }
 
         CurrentScene?.Tick(this);
@@ -298,10 +328,8 @@ class Engine {
             CurrentScene?.Unload(this);
             CurrentScene = NextScene;
             CurrentScene?.Load(this);
+            WaitingToChangeScenes = false;
         }
-
-        testSprite.Transform.Rotation.Z += TickTime / 10f;
-        SpriteBatcher!.DrawSprite(testSprite);
     }
 
     private void Render(double obj) {
@@ -313,8 +341,30 @@ class Engine {
         var font = FontSystem.GetFont(64);
 
         FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
-        font.DrawText(FontRenderer, $"{MousePosition()}", MousePosition(), FSColor.White, new(1, 1), 0);
+
+        foreach (TextDrawData textToDraw in TextThisFrame) {
+            Vector2 origin = new();
+            Vector2 size = font.MeasureString(textToDraw.text, textToDraw.scale);
+
+            switch (textToDraw.alignment) {
+                case TextAlignment.TopLeft: break;
+                case TextAlignment.MiddleLeft: origin.Y += size.Y; break;
+                case TextAlignment.BottomLeft: origin.Y += size.Y * 2; break;
+
+                case TextAlignment.TopMiddle: origin.X += size.X; break;
+                case TextAlignment.MiddleMiddle: origin += size; break;
+                case TextAlignment.BottomMiddle: origin.X += size.X; origin.Y += size.Y * 2; break;
+
+                case TextAlignment.TopRight: origin.X += size.X * 2; break;
+                case TextAlignment.MiddleRight: origin.X += size.X * 2; origin.Y += size.Y; break;
+                case TextAlignment.BottomRight: origin += size * 2; break;
+            }
+
+            font.DrawText(FontRenderer, textToDraw.text, textToDraw.location, textToDraw.colour, textToDraw.scale, TurnsToRadians(textToDraw.rotation), origin);
+        }
+
         FontRenderer.End();
+        TextThisFrame.Clear();
     }
 
     public Engine() {
