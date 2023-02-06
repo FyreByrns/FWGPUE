@@ -143,7 +143,7 @@ class FontManager {
             font = fontFile.DefaultFont;
         }
         DefaultFont = fontFile.DefaultFont;
-
+#if false
         try {
             using FreeType freeType = new();
 
@@ -214,6 +214,7 @@ class FontManager {
         catch (Exception e) {
             Log.Error($"error initializing fonts: {e}");
         }
+#endif
     }
 
     #endregion font loading

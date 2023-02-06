@@ -239,7 +239,7 @@ class Engine {
 
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
-        //FontManager.LoadFont(Gl, fonts, 20);
+        FontManager.LoadFont(Gl, fonts, 20);
 
         FontSystem = new FontSystem(new() {
             FontResolutionFactor = 2,
