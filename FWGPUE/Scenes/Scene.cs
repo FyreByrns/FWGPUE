@@ -55,7 +55,7 @@ abstract class Scene {
     public abstract void Unload(Engine context);
 
     public virtual void Tick(Engine context) {
-        TotalTimeInScene += context.TickTime;
+        TotalTimeInScene += Engine.TickTime;
 
         context.DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.Instance.ScreenHeight * 0.98f), FSColor.Tan);
     }
