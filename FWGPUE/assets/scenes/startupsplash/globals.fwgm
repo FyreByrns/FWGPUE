@@ -1,0 +1,2 @@
+# amount of time the splash screen is shown before fading to the next scene #
+ShowTime = 3
