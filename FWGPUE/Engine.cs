@@ -31,8 +31,8 @@ class Engine {
 
     #region scene management
 
-    public Scene CurrentScene { get; protected set; }
-    public Scene NextScene { get; protected set; }
+    public Scene? CurrentScene { get; protected set; }
+    public Scene? NextScene { get; protected set; }
     public bool WaitingToChangeScenes { get; protected set; }
 
     public void ChangeToScene(Scene scene) {
@@ -59,8 +59,8 @@ class Engine {
     #region text
 
     public FontManager? FontManager { get; protected set; }
-    public FontRenderer FontRenderer { get; protected set; }
-    public FontSystem FontSystem { get; protected set; }
+    public FontRenderer? FontRenderer { get; protected set; }
+    public FontSystem? FontSystem { get; protected set; }
 
     public enum TextAlignment {
         None = 0,
@@ -214,10 +214,10 @@ class Engine {
         DynamicSpriteFont? font = null;
         foreach (TextDrawData textToDraw in TextThisFrame) {
             if (textToDraw.size != lastSize) {
-                FontRenderer.End();
+                FontRenderer?.End();
                 lastSize = textToDraw.size;
-                font = FontSystem.GetFont(textToDraw.size);
-                FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
+                font = FontSystem?.GetFont(textToDraw.size);
+                FontRenderer?.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
             }
 
             Vector2 origin = new();
@@ -239,7 +239,7 @@ class Engine {
 
             font.DrawText(FontRenderer, textToDraw.text, textToDraw.location, textToDraw.colour, textToDraw.scale, TurnsToRadians(textToDraw.rotation), origin);
         }
-        FontRenderer.End();
+        FontRenderer?.End();
 
         TextThisFrame.Clear();
     }

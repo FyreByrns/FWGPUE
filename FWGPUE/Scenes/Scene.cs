@@ -6,7 +6,7 @@ namespace FWGPUE.Scenes;
 abstract class Scene {
     public float TotalTimeInScene { get; protected set; }
 
-    public DataMarkupFile Globals { get; protected set; }
+    public DataMarkupFile? Globals { get; protected set; }
     public T? GetGlobal<T>(string globalName) {
         if (Globals.TryGetToken(globalName, out var token)) {
             var t = typeof(T); // for smaller ifs
