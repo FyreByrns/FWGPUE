@@ -86,7 +86,7 @@ class SpriteBatcher {
             }
 
             var view = context.Camera!.ViewMatrix;
-            var projection = context.Camera!.ProjectionMatrix(context.Config.ScreenWidth, context.Config.ScreenHeight);
+            var projection = context.Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight);
 
             Shader.Use();
             Shader.SetUniform("uView", view);

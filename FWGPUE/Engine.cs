@@ -109,14 +109,14 @@ class Engine {
     }
     public Vector2 WorldSpaceMousePosition() {
         // get inverse transformation from world to screen
-        Matrix4x4 projection = Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
+        Matrix4x4 projection = Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight);
         projection *= Camera!.ViewMatrix;
         Matrix4x4.Invert(projection, out projection);
 
         // create screen space mouse position
         Vector4 screenSpaceMouse = new(
-            2.0f * ((MousePosition().X - 0) / (Config.ScreenWidth)) - 1.0f,
-            1.0f - (2.0f * (MousePosition().Y / Config.ScreenHeight)),
+            2.0f * ((MousePosition().X - 0) / (Config.Instance.ScreenWidth)) - 1.0f,
+            1.0f - (2.0f * (MousePosition().Y / Config.Instance.ScreenHeight)),
             1, 1);
         // transform it back to world space
         Vector4 worldSpaceMouse = Vector4.Transform(screenSpaceMouse, projection);
@@ -150,7 +150,7 @@ class Engine {
     public float TotalSeconds { get; protected set; } = 0;
     public float LastFrameTime { get; protected set; }
     public float TickTimer { get; protected set; }
-    public float TickTime => 1f / Config.TickRate;
+    public float TickTime => 1f / Config.Instance.TickRate;
 
     public Scene CurrentScene { get; protected set; }
     public Scene NextScene { get; protected set; }
@@ -166,8 +166,6 @@ class Engine {
 
     public bool ShutdownComplete { get; private set; } = false;
 
-    public Config Config { get; }
-
     #region initialization
     protected void Init() {
         InitWindow();
@@ -177,7 +175,7 @@ class Engine {
 
     protected void InitWindow() {
         WindowOptions options = WindowOptions.Default with {
-            Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
+            Size = new Vector2D<int>(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight),
             Title = "FWGPUE",
             Samples = 8,
         };
@@ -215,7 +213,7 @@ class Engine {
     protected void InitGraphics() {
         Gl = GL.GetApi(Window);
 
-        Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
+        Gl.Viewport(0, 0, (uint)Config.Instance.ScreenWidth, (uint)Config.Instance.ScreenHeight);
 
         Gl.Enable(GLEnum.Multisample);
 
@@ -314,20 +312,19 @@ class Engine {
 
         var font = FontSystem.GetFont(64);
 
-        FontRenderer.Begin(Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight));
+        FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
         font.DrawText(FontRenderer, $"{MousePosition()}", MousePosition(), FSColor.White, new(1, 1), 0);
         FontRenderer.End();
     }
 
     public Engine() {
         Log.Info("loading config");
-        Config = new Config();
-        if (Config.Location!.Exists()) {
-            Config.Load();
+        if (Config.Instance.Location!.Exists()) {
+            Config.Instance.Load();
         }
         else {
             Log.Info("writing default config");
-            Config.Save();
+            Config.Instance.Save();
         }
 
         Log.Info("starting game");

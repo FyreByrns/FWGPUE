@@ -3,6 +3,16 @@ using System.Reflection;
 
 namespace FWGPUE.IO {
     class Config : EngineFile {
+        static Config _instance;
+        public static Config Instance {
+            get {
+                if (_instance == null) {
+                    _instance = new Config();
+                }
+                return _instance;
+            }
+        }
+
         #region attributes for serialization
         class ConfigValue : Attribute { }
         class Comment : Attribute {
@@ -60,7 +70,7 @@ namespace FWGPUE.IO {
                     var t = valueProperty.PropertyType; // for smaller ifs
                     if (t == typeof(int)) { valueProperty.SetValue(this, int.Parse(valueValue)); }
                     if (t == typeof(string)) { valueProperty.SetValue(this, valueValue); }
-                    if (t == typeof(Log.Severity)){ valueProperty.SetValue(this, Enum.Parse<Log.Severity>(valueValue)); }
+                    if (t == typeof(Log.Severity)) { valueProperty.SetValue(this, Enum.Parse<Log.Severity>(valueValue)); }
 
                     Log.Info($"config value {valueName} loaded as {valueProperty.GetValue(this)}");
                 }
@@ -88,6 +98,6 @@ namespace FWGPUE.IO {
         }
         #endregion save / load
 
-        public Config() : base("config.ini") { }
+        Config() : base("config.ini") { }
     }
 }
