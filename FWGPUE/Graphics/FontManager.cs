@@ -1,4 +1,7 @@
-﻿using FWGPUE.IO;
+﻿//#define MANUAL_FONT_LOAD
+
+using FWGPUE.IO;
+#if MANUAL_FONT_LOAD
 using Pie.Freetype;
 using Silk.NET.OpenGL;
 using Silk.NET.Vulkan;
@@ -8,19 +11,19 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+#endif
 
 using GL = Silk.NET.OpenGL.GL;
 
 namespace FWGPUE.Graphics;
+
 class FontManager {
+#if MANUAL_FONT_LOAD
     public static readonly string PrintableAsciiCharacters = """ !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~""";
     public const int BetweenCharacterPadding = 2;
-
-    public string DefaultFont { get; protected set; }
     public string LoadedCharacters { get; protected set; }
     public SpriteAtlasFile Atlas { get; protected set; }
-    public FontFile FontFile { get; protected set; }
-
+    
     Shader Shader { get; }
     uint vao;
     uint vbo;
@@ -116,34 +119,33 @@ class FontManager {
         }
         SetFontAtlas(font, size, atlas);
     }
+    #endregion font data
+#endif
+
+    public string? DefaultFont { get; protected set; }
+    public FontFile? FontFile { get; protected set; }
 
     public byte[] GetFontData(string font) {
-        return FontFile.FontData[font].Data;
+        return FontFile?.FontData[font].Data ?? Array.Empty<byte>();
     }
-
-    #endregion font data
-
-    #region font loading
 
     public void LoadFont(GL gl, FontFile fontFile, params int[] sizes) {
-        if (!fontFile.Loaded) {
-            fontFile.Load();
-        }
-
-        LoadFont(gl, fontFile, fontFile.DefaultFont, PrintableAsciiCharacters, sizes);
-    }
-    public void LoadFont(GL gl, FontFile fontFile, string font, string characters, params int[] sizes) {
         FontFile = fontFile;
         if (!fontFile.Loaded) {
             fontFile.Load();
         }
 
         // use default font if no default font is specified
-        if (font == "") {
-            font = fontFile.DefaultFont;
-        }
         DefaultFont = fontFile.DefaultFont;
-#if false
+
+#if MANUAL_FONT_LOAD
+        LoadFont(gl, fontFile, fontFile.DefaultFont, PrintableAsciiCharacters, sizes);
+    }
+    public void LoadFont(GL gl, FontFile fontFile, string font, string characters, params int[] sizes) {
+        if (!fontFile.Loaded) {
+            fontFile.Load();
+        }
+
         try {
             using FreeType freeType = new();
 
@@ -214,14 +216,11 @@ class FontManager {
         catch (Exception e) {
             Log.Error($"error initializing fonts: {e}");
         }
-#endif
     }
 
-    #endregion font loading
 
-    #region drawing
 
-    public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, float screenWidth, float screenHeight, float scale = 1) {
+        public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, float screenWidth, float screenHeight, float scale = 1) {
         DrawText(batcher, x, y, text, size, DefaultFont, screenWidth, screenHeight, scale);
     }
     public void DrawText(SpriteBatcher batcher, float x, float y, string text, int size, string font, float screenWidth, float screenHeight, float scale = 1) {
@@ -254,7 +253,6 @@ class FontManager {
             batcher.DrawSprite(cSprite);
             x += cd.Advance * scale;
         }
+#endif
     }
-
-    #endregion drawing
 }
