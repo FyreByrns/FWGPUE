@@ -176,7 +176,7 @@ class Engine {
         MiddleRight,
         BottomRight,
 
-        Normal = MiddleLeft,
+        Normal = TopLeft,
         Center = MiddleMiddle,
     }
     public record TextDrawData(string text, Vector2 location, FSColor colour, float size, Vector2 scale, float rotation, TextAlignment alignment);
@@ -253,14 +253,6 @@ class Engine {
         SpriteAtlas.Load();
         SpriteAtlas.LoadTexture(Gl);
 
-        testSprite = new Sprite(SpriteAtlas!) {
-            Texture = "hello",
-            Transform = {
-                Position = new(0, 0, 0),
-                Scale = new(20)
-            }
-        };
-
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
         FontManager.LoadFont(Gl, fonts, 20);
@@ -270,7 +262,7 @@ class Engine {
             KernelWidth = 2,
             KernelHeight = 2
         });
-        FontSystem.AddFont(FontManager.GetFontData(FontManager.DefaultFont));
+        FontSystem.AddFont(FontManager.GetFontData(FontManager.DefaultFont!));
 
         FontRenderer = new FontRenderer(Gl);
     }
@@ -338,11 +330,11 @@ class Engine {
         SpriteBatcher!.DrawAll(Gl, this);
         SpriteBatcher.Clear();
 
-        var font = FontSystem.GetFont(64);
 
         FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
 
         foreach (TextDrawData textToDraw in TextThisFrame) {
+            var font = FontSystem.GetFont(textToDraw.size);
             Vector2 origin = new();
             Vector2 size = font.MeasureString(textToDraw.text, textToDraw.scale);
 

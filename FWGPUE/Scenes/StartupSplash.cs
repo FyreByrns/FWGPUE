@@ -1,4 +1,10 @@
-﻿namespace FWGPUE.Scenes;
+﻿using FWGPUE.IO;
+
+namespace FWGPUE.Scenes;
+
+using Colour = FontStashSharp.FSColor;
+using static Engine.TextAlignment;
+using static Silk.NET.Input.Key;
 
 class StartupSplash : Scene {
     public float ShowTime { get; private set; }
@@ -12,8 +18,11 @@ class StartupSplash : Scene {
     public override void Tick(Engine context) {
         base.Tick(context);
 
+        context.DrawText("(space to skip)", new(0, 0), Colour.White, size: 15);
+        context.DrawText("Made by: \n\tGavin White \n\tGaelan Edwards", new(Config.Instance.ScreenWidth / 2, Config.Instance.ScreenHeight / 2), Colour.White, size: 64, alignment: Center);
+
         // if total time in scene is greater than the amount of time the scene should be shown .. 
-        if (TotalTimeInScene > ShowTime) {
+        if (context.KeyPressed(Space) || TotalTimeInScene > ShowTime) {
             // .. swap to the next scene
             context.ChangeToScene(new MainMenu());
         }
