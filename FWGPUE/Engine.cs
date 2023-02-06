@@ -252,7 +252,6 @@ class Engine {
         FontRenderer?.End();
         TextThisFrame.Clear();
 
-        ImGuiNET.ImGui.ShowDemoWindow();
         ImGuiController.Render();
     }
 
