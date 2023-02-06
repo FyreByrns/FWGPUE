@@ -89,6 +89,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
         }
         catch {
             Log.Error("vertex data out of range");
+            FlushBuffer();
         }
 
         _lastTexture = texture;
