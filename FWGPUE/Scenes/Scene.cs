@@ -1,4 +1,5 @@
-﻿using FWGPUE.IO;
+﻿using FontStashSharp;
+using FWGPUE.IO;
 
 namespace FWGPUE.Scenes;
 
@@ -55,5 +56,7 @@ abstract class Scene {
 
     public virtual void Tick(Engine context) {
         TotalTimeInScene += context.TickTime;
+
+        context.DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.Instance.ScreenHeight * 0.98f), FSColor.Tan);
     }
 }
