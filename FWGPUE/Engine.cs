@@ -169,6 +169,12 @@ class Engine {
     public Config Config { get; }
 
     #region initialization
+    protected void Init() {
+        InitWindow();
+        InitInput();
+        InitGraphics();
+    }
+
     protected void InitWindow() {
         WindowOptions options = WindowOptions.Default with {
             Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
@@ -233,7 +239,7 @@ class Engine {
 
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
-        FontManager.LoadFont(Gl, fonts, 20);
+        //FontManager.LoadFont(Gl, fonts, 20);
 
         FontSystem = new FontSystem(new() {
             FontResolutionFactor = 2,
@@ -258,9 +264,7 @@ class Engine {
     }
 
     protected void Start() {
-        InitWindow();
-        InitInput();
-        InitGraphics();
+        Init();
         MainLoop();
         End();
     }
