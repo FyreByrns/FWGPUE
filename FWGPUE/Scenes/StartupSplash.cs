@@ -22,7 +22,7 @@ class StartupSplash : Scene {
         context.DrawText("Made by: \n\tGavin White \n\tGaelan Edwards", new(Config.Instance.ScreenWidth / 2, Config.Instance.ScreenHeight / 2), Colour.White, size: 64, alignment: Center);
 
         // if total time in scene is greater than the amount of time the scene should be shown .. 
-        if (context.KeyPressed(Space) || TotalTimeInScene > ShowTime) {
+        if (Input.KeyPressed(Space) || TotalTimeInScene > ShowTime) {
             // .. swap to the next scene
             context.ChangeToScene(new MainMenu());
         }
