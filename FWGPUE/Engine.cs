@@ -1,6 +1,7 @@
 ﻿using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using Silk.NET.OpenGL.Extensions.ImGui;
 using FWGPUE.IO;
 using System.Numerics;
 using FontStashSharp;
@@ -46,6 +47,8 @@ class Engine {
 
     public GL? Gl { get; protected set; }
     public IWindow? Window { get; protected set; }
+
+    public ImGuiController ImGuiController { get; protected set; }
 
     public Camera? Camera { get; set; }
 
@@ -154,6 +157,8 @@ class Engine {
         FontSystem.AddFont(FontManager.GetFontData(FontManager.DefaultFont!));
 
         FontRenderer = new FontRenderer(Gl);
+
+        ImGuiController = new ImGuiController(Gl, Window, Input.InputContext);
     }
 
     #endregion initialization
@@ -207,7 +212,9 @@ class Engine {
         }
     }
 
-    private void Render(double obj) {
+    private void Render(double elapsed) {
+        ImGuiController.Update((float)elapsed);
+
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
         SpriteBatcher!.DrawAll(Gl, this);
@@ -243,8 +250,10 @@ class Engine {
             font.DrawText(FontRenderer, textToDraw.text, textToDraw.location, textToDraw.colour, textToDraw.scale, TurnsToRadians(textToDraw.rotation), origin);
         }
         FontRenderer?.End();
-
         TextThisFrame.Clear();
+
+        ImGuiNET.ImGui.ShowDemoWindow();
+        ImGuiController.Render();
     }
 
     #endregion per-frame
