@@ -20,23 +20,43 @@ class Engine {
     }
     #endregion static helper methods
 
-    public GL? Gl { get; protected set; }
-    public IWindow? Window { get; protected set; }
+    #region timing
 
     public float TotalSeconds { get; protected set; } = 0;
     public float LastFrameTime { get; protected set; }
     public float TickTimer { get; protected set; }
-    public float TickTime => 1f / Config.Instance.TickRate;
+    public static float TickTime => 1f / Config.Instance.TickRate;
+
+    #endregion timing
+
+    #region scene management
 
     public Scene CurrentScene { get; protected set; }
     public Scene NextScene { get; protected set; }
     public bool WaitingToChangeScenes { get; protected set; }
 
+    public void ChangeToScene(Scene scene) {
+        WaitingToChangeScenes = true;
+        NextScene = scene;
+    }
+
+    #endregion scene management
+
+    #region rendering
+
+    public GL? Gl { get; protected set; }
+    public IWindow? Window { get; protected set; }
+
     public Camera? Camera { get; set; }
+
+    #region sprites
+
     public SpriteBatcher? SpriteBatcher { get; protected set; }
     public SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
-    #region text drawing
+    #endregion sprites
+
+    #region text
 
     public FontManager? FontManager { get; protected set; }
     public FontRenderer FontRenderer { get; protected set; }
@@ -67,11 +87,18 @@ class Engine {
         TextThisFrame.Add(new(text, location, colour, size, new(1, 1), 0, alignment));
     }
 
-    #endregion text drawing
+    #endregion text 
 
-    public bool ShutdownComplete { get; private set; } = false;
+    #endregion rendering
 
     #region initialization
+
+    protected void Start() {
+        Init();
+        MainLoop();
+        End();
+    }
+
     protected void Init() {
         InitWindow();
         Input.Init(this);
@@ -125,31 +152,28 @@ class Engine {
 
         FontRenderer = new FontRenderer(Gl);
     }
+
     #endregion initialization
 
-    public void ChangeToScene(Scene scene) {
-        WaitingToChangeScenes = true;
-        NextScene = scene;
-    }
+    #region engine meta-state
+
+    public bool ShutdownComplete { get; private set; } = false;
 
     protected void MainLoop() {
         Window!.Run();
     }
 
-    protected void Closing() {
-    }
+    protected void Closing() { }
 
     protected void End() {
         ShutdownComplete = true;
     }
 
-    protected void Start() {
-        Init();
-        MainLoop();
-        End();
-    }
-
     private void Load() { }
+
+    #endregion engine meta-state
+
+    #region per-frame
 
     private void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
@@ -157,7 +181,6 @@ class Engine {
         TickTimer += LastFrameTime;
 
         Input.Update((float)elapsed);
-
 
         Log.Inane(TickTimer);
         while (TickTimer > TickTime) {
@@ -220,6 +243,8 @@ class Engine {
 
         TextThisFrame.Clear();
     }
+
+    #endregion per-frame
 
     public Engine() {
         Log.Info("loading config");
