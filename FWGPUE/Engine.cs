@@ -187,13 +187,18 @@ class Engine {
         SpriteBatcher!.DrawAll(Gl, this);
         SpriteBatcher.Clear();
 
-
-        FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
-
+        float lastSize = 0;
+        DynamicSpriteFont? font = null;
         foreach (TextDrawData textToDraw in TextThisFrame) {
-            var font = FontSystem.GetFont(textToDraw.size);
+            if (textToDraw.size != lastSize) {
+                FontRenderer.End();
+                lastSize = textToDraw.size;
+                font = FontSystem.GetFont(textToDraw.size);
+                FontRenderer.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
+            }
+
             Vector2 origin = new();
-            Vector2 size = font.MeasureString(textToDraw.text, textToDraw.scale);
+            Vector2 size = font!.MeasureString(textToDraw.text, textToDraw.scale);
 
             switch (textToDraw.alignment) {
                 case TextAlignment.TopLeft: break;
@@ -211,8 +216,8 @@ class Engine {
 
             font.DrawText(FontRenderer, textToDraw.text, textToDraw.location, textToDraw.colour, textToDraw.scale, TurnsToRadians(textToDraw.rotation), origin);
         }
-
         FontRenderer.End();
+
         TextThisFrame.Clear();
     }
 

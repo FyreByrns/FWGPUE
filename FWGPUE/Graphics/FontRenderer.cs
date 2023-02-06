@@ -5,8 +5,7 @@ using FontStashSharp.Interfaces;
 
 namespace FWGPUE.Graphics;
 
-class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
-{
+class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
     private const int MAX_SPRITES = 2048;
     private const int MAX_VERTICES = MAX_SPRITES * 4;
     private const int MAX_INDICES = MAX_SPRITES * 6;
@@ -25,8 +24,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
 
     private static readonly short[] indexData = GenerateIndexArray();
 
-    public unsafe FontRenderer(GL gl) : base(gl)
-    {
+    public unsafe FontRenderer(GL gl) : base(gl) {
         _textureManager = new Texture2DManager(gl);
 
         _vertexBuffer = new BufferObject<VertexPositionColorTexture>(gl, MAX_VERTICES, BufferTargetARB.ArrayBuffer, true);
@@ -52,10 +50,8 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
     ~FontRenderer() => Dispose(false);
     public void Dispose() => Dispose(true);
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposing)
-        {
+    protected virtual void Dispose(bool disposing) {
+        if (!disposing) {
             return;
         }
 
@@ -65,8 +61,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
         _shader.Dispose();
     }
 
-    public void Begin(Matrix4x4 transform)
-    {
+    public void Begin(Matrix4x4 transform) {
         Gl.Disable(EnableCap.DepthTest);
         Gl.Enable(EnableCap.Blend);
         Gl.BlendFunc(BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
@@ -81,30 +76,30 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
         _vertexBuffer.Bind();
     }
 
-    public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
-    {
-        if (_lastTexture != texture)
-        {
+    public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight) {
+        if (_lastTexture != texture) {
             FlushBuffer();
         }
 
-        _vertexData[_vertexIndex++] = topLeft;
-        _vertexData[_vertexIndex++] = topRight;
-        _vertexData[_vertexIndex++] = bottomLeft;
-        _vertexData[_vertexIndex++] = bottomRight;
+        try {
+            _vertexData[_vertexIndex++] = topLeft;
+            _vertexData[_vertexIndex++] = topRight;
+            _vertexData[_vertexIndex++] = bottomLeft;
+            _vertexData[_vertexIndex++] = bottomRight;
+        }
+        catch {
+            Log.Error("vertex data out of range");
+        }
 
         _lastTexture = texture;
     }
 
-    public void End()
-    {
+    public void End() {
         FlushBuffer();
     }
 
-    private unsafe void FlushBuffer()
-    {
-        if (_vertexIndex == 0 || _lastTexture == null)
-        {
+    private unsafe void FlushBuffer() {
+        if (_vertexIndex == 0 || _lastTexture == null) {
             return;
         }
 
@@ -117,11 +112,9 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable
         _vertexIndex = 0;
     }
 
-    private static short[] GenerateIndexArray()
-    {
+    private static short[] GenerateIndexArray() {
         short[] result = new short[MAX_INDICES];
-        for (int i = 0, j = 0; i < MAX_INDICES; i += 6, j += 4)
-        {
+        for (int i = 0, j = 0; i < MAX_INDICES; i += 6, j += 4) {
             result[i] = (short)j;
             result[i + 1] = (short)(j + 1);
             result[i + 2] = (short)(j + 2);
