@@ -1,4 +1,6 @@
-﻿namespace FWGPUE.Scenes;
+﻿using System.Numerics;
+
+namespace FWGPUE.Scenes;
 
 class Test : Scene {
     Node2D baseNode = new();
@@ -15,7 +17,7 @@ class Test : Scene {
     public override void Tick(Engine context) {
         base.Tick(context);
 
-        baseNode.Offset = Input.MousePosition();
+        baseNode.Offset = MousePosition();
         baseNode.Rotation = TotalTimeInScene / 10f;
 
         foreach (Node2D n in baseNode.AllNodes()) {
