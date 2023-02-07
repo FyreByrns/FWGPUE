@@ -27,8 +27,8 @@ class Node2D {
 
         // loop through all nodes adding offsets
         foreach (Node2D node in NodesToThisFromBase()) {
-            float cos = (float)Math.Cos(Engine.TurnsToRadians(rotation));
-            float sin = (float)Math.Sin(Engine.TurnsToRadians(rotation));
+            float cos = (float)Math.Cos(TurnsToRadians(rotation));
+            float sin = (float)Math.Sin(TurnsToRadians(rotation));
 
             float dx = node.Offset.X;
             float dy = node.Offset.Y;

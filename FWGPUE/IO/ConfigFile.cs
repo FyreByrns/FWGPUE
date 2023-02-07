@@ -2,12 +2,12 @@
 using System.Reflection;
 
 namespace FWGPUE.IO {
-    class Config : EngineFile {
-        static Config _instance;
-        public static Config Instance {
+    class ConfigFile : EngineFile {
+        static ConfigFile _instance;
+        public static ConfigFile Config {
             get {
                 if (_instance == null) {
-                    _instance = new Config();
+                    _instance = new ConfigFile();
                 }
                 return _instance;
             }
@@ -98,6 +98,6 @@ namespace FWGPUE.IO {
         }
         #endregion save / load
 
-        Config() : base("config.ini") { }
+        ConfigFile() : base("config.ini") { }
     }
 }

@@ -12,21 +12,12 @@ using FWGPUE.Scenes;
 namespace FWGPUE;
 
 class Engine {
-    #region static helper methods
-    public static float DegreesToRadians(float degrees) {
-        return MathF.PI / 180f * degrees;
-    }
-    public static float TurnsToRadians(float turns) {
-        return turns * MathF.PI * 2f;
-    }
-    #endregion static helper methods
-
     #region timing
 
     public float TotalSeconds { get; protected set; } = 0;
     public float LastFrameTime { get; protected set; }
     public float TickTimer { get; protected set; }
-    public static float TickTime => 1f / Config.Instance.TickRate;
+    public static float TickTime => 1f / Config.TickRate;
 
     #endregion timing
 
@@ -115,7 +106,7 @@ class Engine {
 
     protected void InitWindow() {
         WindowOptions options = WindowOptions.Default with {
-            Size = new Vector2D<int>(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight),
+            Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
             Title = "FWGPUE",
             Samples = 8,
         };
@@ -134,7 +125,7 @@ class Engine {
     protected void InitGraphics() {
         Gl = GL.GetApi(Window);
 
-        Gl.Viewport(0, 0, (uint)Config.Instance.ScreenWidth, (uint)Config.Instance.ScreenHeight);
+        Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
 
         Gl.Enable(GLEnum.Multisample);
 
@@ -230,7 +221,7 @@ class Engine {
                 FontRenderer?.End();
                 lastSize = textToDraw.size;
                 font = FontSystem?.GetFont(textToDraw.size);
-                FontRenderer?.Begin(Camera!.ProjectionMatrix(Config.Instance.ScreenWidth, Config.Instance.ScreenHeight));
+                FontRenderer?.Begin(Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight));
             }
 
             Vector2 origin = new();
@@ -264,12 +255,12 @@ class Engine {
 
     public Engine() {
         Log.Info("loading config");
-        if (Config.Instance.Location!.Exists()) {
-            Config.Instance.Load();
+        if (Config.Location!.Exists()) {
+            Config.Load();
         }
         else {
             Log.Info("writing default config");
-            Config.Instance.Save();
+            Config.Save();
         }
 
         Log.Info("starting game");

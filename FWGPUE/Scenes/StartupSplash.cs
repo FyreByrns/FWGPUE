@@ -19,7 +19,7 @@ class StartupSplash : Scene {
         base.Tick(context);
 
         context.DrawText("(space to skip)", new(0, 0), Colour.White, size: 15);
-        context.DrawText("Made by: \n\tGavin White \n\tGaelan Edwards", new(Config.Instance.ScreenWidth / 2, Config.Instance.ScreenHeight / 2), Colour.White, size: 64, alignment: Center);
+        context.DrawText("Made by: \n\tGavin White \n\tGaelan Edwards", new(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Colour.White, size: 64, alignment: Center);
 
         // if total time in scene is greater than the amount of time the scene should be shown .. 
         if (Input.KeyPressed(Space) || TotalTimeInScene > ShowTime) {
