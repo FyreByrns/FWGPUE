@@ -19,6 +19,7 @@ class Test : Scene {
 
         baseNode.Offset = MousePosition();
         baseNode.Rotation = TotalTimeInScene / 10f;
+        baseNode.Children.First().Rotation = TotalTimeInScene / 5f;
 
         foreach (Node2D n in baseNode.AllNodes()) {
             DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
