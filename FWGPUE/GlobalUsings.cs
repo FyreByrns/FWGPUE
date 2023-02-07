@@ -1,5 +1,7 @@
 ﻿global using TextColour = FontStashSharp.FSColor;
 global using TextAlignment = FWGPUE.Engine.TextAlignment;
+global using Key = Silk.NET.Input.Key;
+global using MouseButton = Silk.NET.Input.MouseButton;
 
 global using static FWGPUE.Engine;
 global using static FWGPUE.Input;
