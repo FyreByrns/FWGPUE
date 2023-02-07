@@ -89,6 +89,9 @@ class Engine {
     public void DrawText(string text, Vector2 location, FSColor colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
         TextThisFrame.Add(new(text, location, colour, size, new(1, 1), 0, alignment));
     }
+    public void DrawTextRotated(string text, Vector2 location, float rotation, FSColor colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
+        TextThisFrame.Add(new(text, location, colour, size, new(1, 1), rotation, alignment));
+    }
 
     #endregion text 
 
