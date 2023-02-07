@@ -5,7 +5,7 @@ namespace FWGPUE.Scenes;
 class Test : Scene {
     Node2D baseNode = new();
 
-    public override void Load(Engine context) {
+    public override void Load() {
         baseNode.AddChild(new Node2D() {
             Offset = new(100, 10)
         }).AddChild(new Node2D() {
@@ -14,21 +14,20 @@ class Test : Scene {
 
     }
 
-    public override void Tick(Engine context) {
-        base.Tick(context);
+    public override void Tick() {
+        base.Tick();
 
         baseNode.Offset = MousePosition();
         baseNode.Rotation = TotalTimeInScene / 10f;
 
         foreach (Node2D n in baseNode.AllNodes()) {
-            context.DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
+            DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
         }
     }
 
-    public override void Render(Engine context) {
-        base.Render(context);
+    public override void Render() {
+        base.Render();
     }
 
-    public override void Unload(Engine context) {
-    }
+    public override void Unload() { }
 }

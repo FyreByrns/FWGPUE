@@ -93,14 +93,14 @@ class SpriteAtlasFile : DataMarkupFile {
             Log.Error($"spritesheet definition not found in {Name}");
         }
     }
-    public void LoadTexture(GL gl) {
+    public void LoadTexture() {
         if (Spritesheet is null) {
             Log.Error($"cannot load texture of {Name} spritesheet (missing spritesheet)");
             return;
         }
 
         try {
-            Texture = new Texture(gl, Spritesheet);
+            Texture = new Texture(Spritesheet);
         }
         catch (Exception e) {
             Log.Error($"error loading texture of {Name}: {e}");

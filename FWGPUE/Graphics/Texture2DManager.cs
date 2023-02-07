@@ -6,11 +6,11 @@ namespace FWGPUE.Graphics;
 using Rectangle = System.Drawing.Rectangle;
 using Point = System.Drawing.Point;
 
-class Texture2DManager : GLObject, ITexture2DManager
+class Texture2DManager : ITexture2DManager
 {
-    public Texture2DManager(GL gl) : base(gl) { }
+    public Texture2DManager() { }
 
-    public object CreateTexture(int width, int height) => new Texture(Gl, width, height);
+    public object CreateTexture(int width, int height) => new Texture(width, height);
 
     public Point GetTextureSize(object texture)
     {

@@ -14,20 +14,20 @@ namespace FWGPUE;
 class Engine {
     #region timing
 
-    public float TotalSeconds { get; protected set; } = 0;
-    public float LastFrameTime { get; protected set; }
-    public float TickTimer { get; protected set; }
+    public static float TotalSeconds { get; protected set; } = 0;
+    public static float LastFrameTime { get; protected set; }
+    public static float TickTimer { get; protected set; }
     public static float TickTime => 1f / Config.TickRate;
 
     #endregion timing
 
     #region scene management
 
-    public Scene? CurrentScene { get; protected set; }
-    public Scene? NextScene { get; protected set; }
-    public bool WaitingToChangeScenes { get; protected set; }
+    public static Scene? CurrentScene { get; protected set; }
+    public static Scene? NextScene { get; protected set; }
+    public static bool WaitingToChangeScenes { get; protected set; }
 
-    public void ChangeToScene(Scene? scene) {
+    public static void ChangeToScene(Scene? scene) {
         WaitingToChangeScenes = true;
         NextScene = scene;
     }
@@ -36,25 +36,25 @@ class Engine {
 
     #region rendering
 
-    public GL? Gl { get; protected set; }
-    public IWindow? Window { get; protected set; }
+    public static GL? Gl { get; protected set; }
+    public static IWindow? Window { get; protected set; }
 
-    public ImGuiController? ImGuiController { get; protected set; }
+    public static ImGuiController? ImGuiController { get; protected set; }
 
-    public Camera? Camera { get; set; }
+    public static Camera? Camera { get; set; }
 
     #region sprites
 
-    public SpriteBatcher? SpriteBatcher { get; protected set; }
-    public SpriteAtlasFile? SpriteAtlas { get; protected set; }
+    public static SpriteBatcher? SpriteBatcher { get; protected set; }
+    public static SpriteAtlasFile? SpriteAtlas { get; protected set; }
 
     #endregion sprites
 
     #region text
 
-    public FontManager? FontManager { get; protected set; }
-    public FontRenderer? FontRenderer { get; protected set; }
-    public FontSystem? FontSystem { get; protected set; }
+    public static FontManager? FontManager { get; protected set; }
+    public static FontRenderer? FontRenderer { get; protected set; }
+    public static FontSystem? FontSystem { get; protected set; }
 
     public enum TextAlignment {
         None = 0,
@@ -75,12 +75,12 @@ class Engine {
         Center = MiddleMiddle,
     }
     public record TextDrawData(string text, Vector2 location, TextColour colour, float size, Vector2 scale, float rotation, TextAlignment alignment);
-    public HashSet<TextDrawData> TextThisFrame = new();
+    public static HashSet<TextDrawData> TextThisFrame = new();
 
-    public void DrawText(string text, Vector2 location, TextColour colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
+    public static void DrawText(string text, Vector2 location, TextColour colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
         TextThisFrame.Add(new(text, location, colour, size, new(1, 1), 0, alignment));
     }
-    public void DrawTextRotated(string text, Vector2 location, float rotation, TextColour colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
+    public static void DrawTextRotated(string text, Vector2 location, float rotation, TextColour colour, float size = 10, TextAlignment alignment = TextAlignment.Normal) {
         TextThisFrame.Add(new(text, location, colour, size, new(1, 1), rotation, alignment));
     }
 
@@ -98,7 +98,7 @@ class Engine {
 
     protected void Init() {
         InitWindow();
-        Input.Init(this);
+        Input.Init();
         InitGraphics();
 
         ChangeToScene(new StartupSplash());
@@ -124,20 +124,17 @@ class Engine {
 
     protected void InitGraphics() {
         Gl = GL.GetApi(Window);
-
-        Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
-
         Gl.Enable(GLEnum.Multisample);
-
         Gl.Enable(GLEnum.Blend);
+        Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
         Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         Camera = new Camera(new Vector2(0), 100);
 
-        SpriteBatcher = new SpriteBatcher(Gl);
+        SpriteBatcher = new();
         SpriteAtlas = new("assets/atlases/main.fwgm");
         SpriteAtlas.Load();
-        SpriteAtlas.LoadTexture(Gl);
+        SpriteAtlas.LoadTexture();
 
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
@@ -150,7 +147,7 @@ class Engine {
         });
         FontSystem.AddFont(FontManager.GetFontData(FontManager.DefaultFont!));
 
-        FontRenderer = new FontRenderer(Gl);
+        FontRenderer = new FontRenderer();
 
         ImGuiController = new ImGuiController(Gl, Window, Input.InputContext);
     }
@@ -177,7 +174,7 @@ class Engine {
 
     #region per-frame
 
-    private void Update(double elapsed) {
+    private static void Update(double elapsed) {
         LastFrameTime = (float)elapsed;
         TotalSeconds += LastFrameTime;
         TickTimer += LastFrameTime;
@@ -191,27 +188,27 @@ class Engine {
         }
     }
 
-    public virtual void Tick() {
+    public static void Tick() {
         if (CurrentScene == null && !WaitingToChangeScenes) {
             Window!.Close();
         }
 
-        CurrentScene?.Tick(this);
+        CurrentScene?.Tick();
 
         if (WaitingToChangeScenes) {
-            CurrentScene?.Unload(this);
+            CurrentScene?.Unload();
             CurrentScene = NextScene;
-            CurrentScene?.Load(this);
+            CurrentScene?.Load();
             WaitingToChangeScenes = false;
         }
     }
 
-    private void Render(double elapsed) {
+    private static void Render(double elapsed) {
         ImGuiController!.Update((float)elapsed);
 
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        SpriteBatcher!.DrawAll(Gl, this);
+        SpriteBatcher!.DrawAll();
         SpriteBatcher.Clear();
 
         float lastSize = 0;
@@ -246,7 +243,7 @@ class Engine {
         FontRenderer?.End();
         TextThisFrame.Clear();
 
-        CurrentScene?.Render(this);
+        CurrentScene?.Render();
 
         ImGuiController.Render();
     }

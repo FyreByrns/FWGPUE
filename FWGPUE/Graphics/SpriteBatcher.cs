@@ -36,17 +36,17 @@ class SpriteBatcher {
     /// Register sprite for drawing this frame.
     /// </summary>
     public void DrawSprite(Sprite sprite) {
-        if (!SpritesByAtlas.ContainsKey(sprite.Atlas)) {
-            SpritesByAtlas[sprite.Atlas] = new List<Sprite>();
+        if (!SpritesByAtlas.ContainsKey(sprite.Atlas!)) {
+            SpritesByAtlas[sprite.Atlas!] = new List<Sprite>();
         }
 
         if (!RegisteredSpriteIDs.Contains(sprite.ID)) {
-            SpritesByAtlas[sprite.Atlas].Add(sprite);
+            SpritesByAtlas[sprite.Atlas!].Add(sprite);
             RegisteredSpriteIDs.Add(sprite.ID);
         }
     }
 
-    public void DrawAll(GL gl, Engine context) {
+    public void DrawAll() {
         foreach (SpriteAtlasFile atlas in SpritesByAtlas.Keys) {
             List<Sprite> SpritesThisFrame = SpritesByAtlas[atlas];
             SpritesThisFrame = SpritesThisFrame.OrderBy(x => x.Transform.Position.Z).ToList();
@@ -64,10 +64,10 @@ class SpriteBatcher {
 
                 offsets[i] = model;
             }
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
+            Gl!.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
             unsafe {
                 fixed (Matrix4x4* data = offsets) {
-                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Matrix4x4) * offsets.Length), data, BufferUsageARB.StaticDraw);
+                    Gl!.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Matrix4x4) * offsets.Length), data, BufferUsageARB.StaticDraw);
                 }
             }
 
@@ -78,15 +78,15 @@ class SpriteBatcher {
                 var rect = atlas.GetRect(sprite.Texture!);
                 uvs[i] = new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
             }
-            gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
+            Gl!.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
             unsafe {
                 fixed (Vector4* data = uvs) {
-                    gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Vector4) * uvs.Length), data, BufferUsageARB.StaticDraw);
+                    Gl!.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(Vector4) * uvs.Length), data, BufferUsageARB.StaticDraw);
                 }
             }
 
-            var view = context.Camera!.ViewMatrix;
-            var projection = context.Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
+            var view = Engine.Camera!.ViewMatrix;
+            var projection = Engine.Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
 
             Shader.Use();
             Shader.SetUniform("uView", view);
@@ -97,8 +97,8 @@ class SpriteBatcher {
                 atlas.Texture.Bind();
             }
 
-            gl.BindVertexArray(quadVAO);
-            gl.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
+            Gl!.BindVertexArray(quadVAO);
+            Gl!.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
         }
     }
 
@@ -107,57 +107,57 @@ class SpriteBatcher {
         RegisteredSpriteIDs.Clear();
     }
 
-    public SpriteBatcher(GL gl) {
-        Shader = new Shader(gl, new ShaderFile("assets/sprite.shader"));
+    public SpriteBatcher() {
+        Shader = new Shader(new ShaderFile("assets/sprite.shader"));
 
-        quadVAO = gl.GenVertexArray();
-        quadVBO = gl.GenBuffer();
-        offsetVBO = gl.GenBuffer();
-        uvVBO = gl.GenBuffer();
+        quadVAO = Gl!.GenVertexArray();
+        quadVBO = Gl!.GenBuffer();
+        offsetVBO = Gl!.GenBuffer();
+        uvVBO = Gl!.GenBuffer();
 
-        gl.BindBuffer(GLEnum.ArrayBuffer, quadVBO);
+        Gl!.BindBuffer(GLEnum.ArrayBuffer, quadVBO);
         unsafe {
             fixed (void* data = quadVertices) {
-                gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quadVertices.Length * sizeof(float)), data, BufferUsageARB.StaticDraw);
+                Gl!.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(quadVertices.Length * sizeof(float)), data, BufferUsageARB.StaticDraw);
             }
         }
 
         // setup vertex data
         uint slot = 0;
 
-        gl.BindVertexArray(quadVAO);
-        gl.EnableVertexAttribArray(slot);
-        gl.EnableVertexAttribArray(slot + 1);
+        Gl!.BindVertexArray(quadVAO);
+        Gl!.EnableVertexAttribArray(slot);
+        Gl!.EnableVertexAttribArray(slot + 1);
         unsafe {
-            gl.VertexAttribPointer(slot + 0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)0);
-            gl.VertexAttribPointer(slot + 1, 2, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+            Gl!.VertexAttribPointer(slot + 0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)0);
+            Gl!.VertexAttribPointer(slot + 1, 2, VertexAttribPointerType.Float, false, sizeof(float) * 5, (void*)(sizeof(float) * 3));
         }
         slot += 2;
 
         // setup offset buffer
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
-        gl.EnableVertexAttribArray(slot + 0); // mat4 takes up 4 slots as float4s
-        gl.EnableVertexAttribArray(slot + 1); // ..
-        gl.EnableVertexAttribArray(slot + 2); // ..
-        gl.EnableVertexAttribArray(slot + 3); // ..
+        Gl!.BindBuffer(BufferTargetARB.ArrayBuffer, offsetVBO);
+        Gl!.EnableVertexAttribArray(slot + 0); // mat4 takes up 4 slots as float4s
+        Gl!.EnableVertexAttribArray(slot + 1); // ..
+        Gl!.EnableVertexAttribArray(slot + 2); // ..
+        Gl!.EnableVertexAttribArray(slot + 3); // ..
         unsafe {
-            gl.VertexAttribPointer(slot + 0, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 0));
-            gl.VertexAttribPointer(slot + 1, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 1));
-            gl.VertexAttribPointer(slot + 2, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 2));
-            gl.VertexAttribPointer(slot + 3, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 3));
+            Gl!.VertexAttribPointer(slot + 0, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 0));
+            Gl!.VertexAttribPointer(slot + 1, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 1));
+            Gl!.VertexAttribPointer(slot + 2, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 2));
+            Gl!.VertexAttribPointer(slot + 3, 4, VertexAttribPointerType.Float, false, (uint)sizeof(Matrix4x4), (void*)(sizeof(float) * 4 * 3));
         }
-        gl.VertexAttribDivisor(slot + 0, 1); // instanced row 1
-        gl.VertexAttribDivisor(slot + 1, 1); // ..         .. 2
-        gl.VertexAttribDivisor(slot + 2, 1); // ..         .. 3
-        gl.VertexAttribDivisor(slot + 3, 1); // ..         .. 4
+        Gl!.VertexAttribDivisor(slot + 0, 1); // instanced row 1
+        Gl!.VertexAttribDivisor(slot + 1, 1); // ..         .. 2
+        Gl!.VertexAttribDivisor(slot + 2, 1); // ..         .. 3
+        Gl!.VertexAttribDivisor(slot + 3, 1); // ..         .. 4
         slot += 4;
 
         // setup uv buffer
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
-        gl.EnableVertexAttribArray(slot);
+        Gl!.BindBuffer(BufferTargetARB.ArrayBuffer, uvVBO);
+        Gl!.EnableVertexAttribArray(slot);
         unsafe {
-            gl.VertexAttribPointer(slot, 4, VertexAttribPointerType.Float, false, sizeof(float) * 4, (void*)0);
+            Gl!.VertexAttribPointer(slot, 4, VertexAttribPointerType.Float, false, sizeof(float) * 4, (void*)0);
         }
-        gl.VertexAttribDivisor(slot, 1); // instanced 
+        Gl!.VertexAttribDivisor(slot, 1); // instanced 
     }
 }

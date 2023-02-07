@@ -39,7 +39,7 @@ abstract class Scene {
         return default(T);
     }
 
-    protected void Load<T>(Engine context)
+    protected void Load<T>()
         where T : Scene {
 
         // get scene directory from scene type name
@@ -51,14 +51,14 @@ abstract class Scene {
         Globals.Location!.EnsureExists();
         Globals.Load();
     }
-    public abstract void Load(Engine context);
-    public abstract void Unload(Engine context);
+    public abstract void Load();
+    public abstract void Unload();
 
-    public virtual void Tick(Engine context) {
+    public virtual void Tick() {
         TotalTimeInScene += TickTime;
 
-        context.DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.ScreenHeight * 0.98f), FSColor.Tan);
+        DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.ScreenHeight * 0.98f), FSColor.Tan);
     }
 
-    public virtual void Render(Engine context) { }
+    public virtual void Render() { }
 }

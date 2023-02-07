@@ -7,7 +7,7 @@ using Silk.NET.Core.Native;
 
 namespace FWGPUE.Graphics;
 
-class Texture : GLObject, IDisposable {
+class Texture : IDisposable {
     public uint Handle { get; }
 
     public TextureTarget Target { get; }
@@ -17,12 +17,12 @@ class Texture : GLObject, IDisposable {
     public int Height { get; }
 
     public void Bind(TextureUnit slot = TextureUnit.Texture0) {
-        Gl.ActiveTexture(slot);
+        Gl!.ActiveTexture(slot);
         Gl.BindTexture(Target, Handle);
     }
 
     void SetParameters() {
-        Gl.TexParameter(Target, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
+        Gl!.TexParameter(Target, TextureParameterName.TextureWrapS, (int)GLEnum.ClampToEdge);
         Gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
         Gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
         Gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
@@ -32,7 +32,7 @@ class Texture : GLObject, IDisposable {
     public unsafe void SetData(System.Drawing.Rectangle bounds, byte[] data) {
         Bind();
         fixed (byte* ptr = data) {
-            Gl.TexSubImage2D(
+            Gl!.TexSubImage2D(
             target: TextureTarget.Texture2D,
             level: 0,
             xoffset: bounds.Left,
@@ -47,10 +47,9 @@ class Texture : GLObject, IDisposable {
     }
 
     // todo: cleanup and remove duplicated code
-    public Texture(GL gl, int width, int height) : this(gl, Array.Empty<byte>(), width, height) { }
-    public Texture(GL gl, byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba)
-        : base(gl) {
-        Handle = Gl.GenTexture();
+    public Texture(int width, int height) : this(Array.Empty<byte>(), width, height) { }
+    public Texture(byte[] data, int width, int height, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
+        Handle = Gl!.GenTexture();
         Target = target;
         Format = internalFormat;
 
@@ -67,9 +66,8 @@ class Texture : GLObject, IDisposable {
 
         SetParameters();
     }
-    public Texture(GL gl, ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba)
-        : base(gl) {
-        Handle = Gl.GenTexture();
+    public Texture(ByteFile file, TextureTarget target = TextureTarget.Texture2D, InternalFormat internalFormat = InternalFormat.Rgba) {
+        Handle = Gl!.GenTexture();
         Target = target;
         Format = internalFormat;
 
@@ -87,7 +85,7 @@ class Texture : GLObject, IDisposable {
                 img.ProcessPixelRows(accessor => {
                     for (int y = 0; y < accessor.Height; y++) {
                         fixed (void* data = accessor.GetRowSpan(y)) {
-                            gl.TexSubImage2D(Target, 0, 0, y, (uint)accessor.Width, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                            Gl.TexSubImage2D(Target, 0, 0, y, (uint)accessor.Width, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
                         }
                     }
                 });
@@ -98,6 +96,6 @@ class Texture : GLObject, IDisposable {
     }
 
     public void Dispose() {
-        Gl.DeleteTexture(Handle);
+        Gl!.DeleteTexture(Handle);
     }
 }

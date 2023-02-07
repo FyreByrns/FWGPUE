@@ -5,7 +5,7 @@ using FontStashSharp.Interfaces;
 
 namespace FWGPUE.Graphics;
 
-class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
+class FontRenderer : IFontStashRenderer2, IDisposable {
     private const int MAX_SPRITES = 2048;
     private const int MAX_VERTICES = MAX_SPRITES * 4;
     private const int MAX_INDICES = MAX_SPRITES * 6;
@@ -24,17 +24,17 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
 
     private static readonly short[] indexData = GenerateIndexArray();
 
-    public unsafe FontRenderer(GL gl) : base(gl) {
-        _textureManager = new Texture2DManager(gl);
+    public unsafe FontRenderer() {
+        _textureManager = new Texture2DManager();
 
-        _vertexBuffer = new BufferObject<VertexPositionColorTexture>(gl, MAX_VERTICES, BufferTargetARB.ArrayBuffer, true);
-        _indexBuffer = new BufferObject<short>(gl, indexData.Length, BufferTargetARB.ElementArrayBuffer, false);
+        _vertexBuffer = new BufferObject<VertexPositionColorTexture>(MAX_VERTICES, BufferTargetARB.ArrayBuffer, true);
+        _indexBuffer = new BufferObject<short>(indexData.Length, BufferTargetARB.ElementArrayBuffer, false);
         _indexBuffer.SetData(indexData, 0, indexData.Length);
 
-        _shader = new Shader(gl, new ShaderFile("assets/fonts/font.shader"));
+        _shader = new Shader(new ShaderFile("assets/fonts/font.shader"));
         _shader.Use();
 
-        _vao = new VertexArrayObject(gl, sizeof(VertexPositionColorTexture));
+        _vao = new VertexArrayObject(sizeof(VertexPositionColorTexture));
         _vao.Bind();
 
         var location = _shader.GetAttribLocation("a_position");
@@ -62,7 +62,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
     }
 
     public void Begin(Matrix4x4 transform) {
-        Gl.Disable(EnableCap.DepthTest);
+        Gl!.Disable(EnableCap.DepthTest);
         Gl.Enable(EnableCap.Blend);
         Gl.BlendFunc(BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
 
@@ -109,7 +109,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
         var texture = (Texture)_lastTexture;
         texture.Bind();
 
-        Gl.DrawElements(PrimitiveType.Triangles, (uint)(_vertexIndex * 6 / 4), DrawElementsType.UnsignedShort, null);
+        Gl!.DrawElements(PrimitiveType.Triangles, (uint)(_vertexIndex * 6 / 4), DrawElementsType.UnsignedShort, null);
         _vertexIndex = 0;
     }
 

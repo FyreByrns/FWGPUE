@@ -5,11 +5,11 @@ using Silk.NET.Core.Native;
 
 namespace FWGPUE.Graphics;
 
-class Shader : GLObject, IDisposable {
+class Shader : IDisposable {
     public uint Handle { get; }
 
     uint LoadShader(ShaderType type, string source) {
-        uint handle = Gl.CreateShader(type);
+        uint handle = Gl!.CreateShader(type);
 
         Gl.ShaderSource(handle, source);
         Gl.CompileShader(handle);
@@ -23,11 +23,11 @@ class Shader : GLObject, IDisposable {
     }
 
     public void Use() {
-        Gl.UseProgram(Handle);
+        Gl!.UseProgram(Handle);
     }
 
     public void SetUniform<T>(string name, T value) {
-        int location = Gl.GetUniformLocation(Handle, name);
+        int location = Gl!.GetUniformLocation(Handle, name);
         if (location == -1) {
             Log.Error($"uniform {name} not found in shader");
         }
@@ -42,16 +42,16 @@ class Shader : GLObject, IDisposable {
     }
 
     public int GetAttribLocation(string attribName) {
-        var result = Gl.GetAttribLocation(Handle, attribName);
+        var result = Gl!.GetAttribLocation(Handle, attribName);
         return result;
     }
 
-    public Shader(GL gl, ShaderFile shaderFile) : base(gl) {
+    public Shader(ShaderFile shaderFile) : base() {
         shaderFile.Load();
 
         // create shaders
-        uint vertex = LoadShader(ShaderType.VertexShader, shaderFile.Vertex);
-        uint fragment = LoadShader(ShaderType.FragmentShader, shaderFile.Fragment);
+        uint vertex = LoadShader(ShaderType.VertexShader, shaderFile.Vertex!);
+        uint fragment = LoadShader(ShaderType.FragmentShader, shaderFile.Fragment!);
 
         // bind shader program
         Handle = Gl!.CreateProgram();
@@ -71,6 +71,6 @@ class Shader : GLObject, IDisposable {
     }
 
     public void Dispose() {
-        Gl.DeleteProgram(Handle);
+        Gl!.DeleteProgram(Handle);
     }
 }

@@ -112,8 +112,8 @@ static class Input {
         UpdateKeyTimers((float)elapsed);
     }
 
-    public static void Init(Engine context) {
-        InputContext = context.Window!.CreateInput();
+    public static void Init() {
+        InputContext = Window!.CreateInput();
         for (int i = 0; i < InputContext.Keyboards.Count; i++) {
             InputContext.Keyboards[i].KeyDown += OnKeyDown;
             InputContext.Keyboards[i].KeyUp += OnKeyUp;
