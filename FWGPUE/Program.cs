@@ -1,2 +1,2 @@
 ﻿using FWGPUE;
-new Engine();
+Engine.Begin();

@@ -11,21 +11,21 @@ using FWGPUE.Scenes;
 
 namespace FWGPUE;
 
-class Engine {
+static class Engine {
     #region timing
 
-    public static float TotalSeconds { get; protected set; } = 0;
-    public static float LastFrameTime { get; protected set; }
-    public static float TickTimer { get; protected set; }
+    public static float TotalSeconds { get; private set; } = 0;
+    public static float LastFrameTime { get; private set; }
+    public static float TickTimer { get; private set; }
     public static float TickTime => 1f / Config.TickRate;
 
     #endregion timing
 
     #region scene management
 
-    public static Scene? CurrentScene { get; protected set; }
-    public static Scene? NextScene { get; protected set; }
-    public static bool WaitingToChangeScenes { get; protected set; }
+    public static Scene? CurrentScene { get; private set; }
+    public static Scene? NextScene { get; private set; }
+    public static bool WaitingToChangeScenes { get; private set; }
 
     public static void ChangeToScene(Scene? scene) {
         WaitingToChangeScenes = true;
@@ -36,25 +36,25 @@ class Engine {
 
     #region rendering
 
-    public static GL? Gl { get; protected set; }
-    public static IWindow? Window { get; protected set; }
+    public static GL? Gl { get; private set; }
+    public static IWindow? Window { get; private set; }
 
-    public static ImGuiController? ImGuiController { get; protected set; }
+    public static ImGuiController? ImGuiController { get; private set; }
 
     public static Camera? Camera { get; set; }
 
     #region sprites
 
-    public static SpriteBatcher? SpriteBatcher { get; protected set; }
-    public static SpriteAtlasFile? SpriteAtlas { get; protected set; }
+    public static SpriteBatcher? SpriteBatcher { get; private set; }
+    public static SpriteAtlasFile? SpriteAtlas { get; private set; }
 
     #endregion sprites
 
     #region text
 
-    public static FontManager? FontManager { get; protected set; }
-    public static FontRenderer? FontRenderer { get; protected set; }
-    public static FontSystem? FontSystem { get; protected set; }
+    public static FontManager? FontManager { get; private set; }
+    public static FontRenderer? FontRenderer { get; private set; }
+    public static FontSystem? FontSystem { get; private set; }
 
     public enum TextAlignment {
         None = 0,
@@ -90,13 +90,13 @@ class Engine {
 
     #region initialization
 
-    protected void Start() {
+    static void Start() {
         Init();
         MainLoop();
         End();
     }
 
-    protected void Init() {
+    static void Init() {
         InitWindow();
         Input.Init();
         InitGraphics();
@@ -104,7 +104,7 @@ class Engine {
         ChangeToScene(new StartupSplash());
     }
 
-    protected void InitWindow() {
+    static void InitWindow() {
         WindowOptions options = WindowOptions.Default with {
             Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
             Title = "FWGPUE",
@@ -122,7 +122,7 @@ class Engine {
         Window.Initialize();
     }
 
-    protected void InitGraphics() {
+    static void InitGraphics() {
         Gl = GL.GetApi(Window);
         Gl.Enable(GLEnum.Multisample);
         Gl.Enable(GLEnum.Blend);
@@ -156,19 +156,19 @@ class Engine {
 
     #region engine meta-state
 
-    public bool ShutdownComplete { get; private set; } = false;
+    public static bool ShutdownComplete { get; private set; } = false;
 
-    protected void MainLoop() {
+    static void MainLoop() {
         Window!.Run();
     }
 
-    protected void Closing() { }
+    static void Closing() { }
 
-    protected void End() {
+    static void End() {
         ShutdownComplete = true;
     }
 
-    private void Load() { }
+    static void Load() { }
 
     #endregion engine meta-state
 
@@ -250,7 +250,7 @@ class Engine {
 
     #endregion per-frame
 
-    public Engine() {
+    public static void Begin() {
         Log.Info("loading config");
         if (Config.Location!.Exists()) {
             Config.Load();
