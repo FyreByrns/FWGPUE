@@ -21,7 +21,7 @@ class DataMarkupFile : EngineFile {
         #endregion tokens used for both parsing and as value types
     }
     class InternalToken {
-        public TokenType Type { get; set; }
+        public TT Type { get; set; }
         public string? Name { get; set; }
         public string? Value { get; set; }
         public List<string> Values { get; } = new();
@@ -47,7 +47,7 @@ class DataMarkupFile : EngineFile {
         }
     }
     static class TokenHelper {
-        public static readonly Dictionary<string, TokenType> TokenDefinitions = new() {
+        public static readonly Dictionary<string, TT> TokenDefinitions = new() {
             { "#", TT.Comment },
             { "=", TT.p_set },
             { "s[", TT.String },
@@ -115,7 +115,7 @@ class DataMarkupFile : EngineFile {
             }
         }
 
-        public static TokenType Parse(string text) {
+        public static TT Parse(string text) {
             if (TokenDefinitions.ContainsKey(text)) {
                 return TokenDefinitions[text];
             }

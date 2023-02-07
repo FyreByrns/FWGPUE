@@ -2,7 +2,7 @@
 
 namespace FWGPUE.Scenes;
 
-using Colour = FontStashSharp.FSColor;
+using Colour = TextColour;
 using static Engine.TextAlignment;
 using static Silk.NET.Input.Key;
 

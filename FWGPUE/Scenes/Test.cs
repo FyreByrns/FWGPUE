@@ -19,7 +19,7 @@ class Test : Scene {
         baseNode.Rotation = TotalTimeInScene / 10f;
 
         foreach (Node2D n in baseNode.AllNodes()) {
-            context.DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), FontStashSharp.FSColor.AliceBlue, size: 30, alignment: Engine.TextAlignment.Center);
+            context.DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
         }
     }
 
