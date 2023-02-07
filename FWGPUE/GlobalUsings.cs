@@ -2,6 +2,7 @@
 global using TextAlignment = FWGPUE.Engine.TextAlignment;
 
 global using static FWGPUE.Engine;
+global using static FWGPUE.Input;
 global using static FWGPUE.GlobalHelpers;
 global using static FWGPUE.IO.ConfigFile;
 
