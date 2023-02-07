@@ -14,14 +14,15 @@ class MainMenu : Scene {
 
     public override void Render() {
         IM.SetNextWindowSize(new(Config.ScreenWidth, Config.ScreenHeight));
-        IM.Begin("mainMenuContainer", NoTitleBar | NoBackground | NoResize);
+        IM.SetNextWindowPos(new(0));
+        IM.Begin("mainMenuContainer", NoTitleBar | NoBackground | NoResize | NoMove);
 
-        IM.SetCursorPos(new(Config.ScreenWidth / 2 - 100, Config.ScreenHeight / 4));
+        IM.SetCursorPos(new(Config.ScreenWidth / 2 - 50, Config.ScreenHeight / 4));
         if (IM.Button("play", new(100, 20))) {
             ChangeToScene(new Test());
         }
 
-        IM.SetCursorPos(new(Config.ScreenWidth / 2 - 100, Config.ScreenHeight / 3));
+        IM.SetCursorPos(new(Config.ScreenWidth / 2 - 50, Config.ScreenHeight / 3));
         if (IM.Button("quit", new(100, 20))) {
             // close
             ChangeToScene(null);
