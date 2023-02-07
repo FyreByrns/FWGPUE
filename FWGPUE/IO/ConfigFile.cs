@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace FWGPUE.IO {
     class ConfigFile : EngineFile {
-        static ConfigFile _instance;
+        static ConfigFile? _instance;
         public static ConfigFile Config {
             get {
                 if (_instance == null) {

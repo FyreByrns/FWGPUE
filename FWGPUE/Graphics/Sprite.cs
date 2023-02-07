@@ -6,7 +6,7 @@ class Sprite {
     static readonly Random RNG = new();
     public short ID { get; }
 
-    public SpriteAtlasFile Atlas { get; }
+    public SpriteAtlasFile? Atlas { get; }
     public Transform Transform { get; set; } = new();
     public string? Texture { get; set; }
 

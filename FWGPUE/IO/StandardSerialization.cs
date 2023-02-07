@@ -34,7 +34,7 @@
             }
             return Array.Empty<byte>();
         }
-        public static T FromBytes<T>(byte[] bytes, ref int index) {
+        public static T? FromBytes<T>(byte[] bytes, ref int index) {
             if (SerializerDeserializerPairs.ContainsKey(typeof(T))) {
                 return (T)SerializerDeserializerPairs[typeof(T)].From(bytes, ref index);
             }

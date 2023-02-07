@@ -15,7 +15,7 @@ class FontRenderer : GLObject, IFontStashRenderer2, IDisposable {
     private readonly BufferObject<short> _indexBuffer;
     private readonly VertexArrayObject _vao;
     private readonly VertexPositionColorTexture[] _vertexData = new VertexPositionColorTexture[MAX_VERTICES];
-    private object _lastTexture;
+    private object? _lastTexture;
     private int _vertexIndex = 0;
 
     private readonly Texture2DManager _textureManager;

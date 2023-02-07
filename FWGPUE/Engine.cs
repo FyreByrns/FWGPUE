@@ -27,7 +27,7 @@ class Engine {
     public Scene? NextScene { get; protected set; }
     public bool WaitingToChangeScenes { get; protected set; }
 
-    public void ChangeToScene(Scene scene) {
+    public void ChangeToScene(Scene? scene) {
         WaitingToChangeScenes = true;
         NextScene = scene;
     }
@@ -39,7 +39,7 @@ class Engine {
     public GL? Gl { get; protected set; }
     public IWindow? Window { get; protected set; }
 
-    public ImGuiController ImGuiController { get; protected set; }
+    public ImGuiController? ImGuiController { get; protected set; }
 
     public Camera? Camera { get; set; }
 
@@ -207,7 +207,7 @@ class Engine {
     }
 
     private void Render(double elapsed) {
-        ImGuiController.Update((float)elapsed);
+        ImGuiController!.Update((float)elapsed);
 
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 

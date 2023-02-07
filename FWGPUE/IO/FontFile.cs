@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace FWGPUE.IO;
 class FontFile : DataMarkupFile {
-    public string DefaultFont { get; protected set; }
-    public ByteFile Default => FontData[DefaultFont];
-    public string[] Fonts { get; protected set; }
+    public string? DefaultFont { get; protected set; }
+    public ByteFile? Default => FontData[DefaultFont!];
+    public string[]? Fonts { get; protected set; }
 
     public Dictionary<string, ByteFile> FontData { get; } = new();
 

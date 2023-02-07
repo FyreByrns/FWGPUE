@@ -50,12 +50,12 @@ class Node2D {
         Children.Add(node);
         return node;
     }
-    public Node2D AddSibling(Node2D node) {
+    public Node2D? AddSibling(Node2D node) {
         if (IsBase) {
             Log.Error("can't add sibling to base node");
             return this;
         }
-        return Parent.AddChild(node);
+        return Parent?.AddChild(node);
     }
 
     public IEnumerable<Node2D> AllNodes() {
