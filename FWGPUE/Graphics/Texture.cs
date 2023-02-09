@@ -4,6 +4,7 @@ using FWGPUE.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Silk.NET.Core.Native;
+using System.Runtime.InteropServices;
 
 namespace FWGPUE.Graphics;
 
@@ -15,6 +16,8 @@ class Texture : IDisposable {
 
     public int Width { get; }
     public int Height { get; }
+
+    public byte[] Data { get; protected set; }
 
     public void Bind(TextureUnit slot = TextureUnit.Texture0) {
         Gl!.ActiveTexture(slot);
@@ -57,6 +60,7 @@ class Texture : IDisposable {
 
         Width = width;
         Height = height;
+        Data = data;
 
         unsafe {
             fixed (byte* d = data) {
@@ -77,6 +81,7 @@ class Texture : IDisposable {
         using (var img = Image.Load<Rgba32>(file.Data)) {
             Width = img.Width;
             Height = img.Height;
+            Data = new byte[Width * Height * 4];
 
             unsafe {
                 Gl.TexImage2D(Target, 0, Format, (uint)img.Width, (uint)img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
@@ -86,6 +91,8 @@ class Texture : IDisposable {
                     for (int y = 0; y < accessor.Height; y++) {
                         fixed (void* data = accessor.GetRowSpan(y)) {
                             Gl.TexSubImage2D(Target, 0, 0, y, (uint)accessor.Width, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+
+                            Marshal.Copy(new IntPtr(data), Data, y * Width * 4, Width * 4);
                         }
                     }
                 });
