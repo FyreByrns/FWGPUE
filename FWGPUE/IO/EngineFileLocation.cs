@@ -1,5 +1,16 @@
 ﻿namespace FWGPUE.IO {
     class EngineFileLocation {
+        public enum FileType {
+            None = 0,
+
+            Text,
+            Image,
+        }
+        public static readonly Dictionary<FileType, string[]> FileExtensionsByType = new() {
+            { FileType.Text,    new[]{ "txt" } },
+            { FileType.Image,   new[]{ "png" } },
+        };
+
         /// <summary> Name of the file. </summary>
         public string? Name { get; set; }
         /// <summary> Path to the directory containing the file. </summary>
@@ -11,6 +22,28 @@
 
         public bool IsDirectory => File.GetAttributes(FullPath).HasFlag(FileAttributes.Directory);
         public bool IsFile => !IsDirectory;
+
+        public FileType Type() {
+            // split the file name by a period to find the extension
+            string[] nameSplit =
+                Name?.Split(".", StringSplitOptions.RemoveEmptyEntries)
+                ?? Array.Empty<string>();
+
+            // if the name couldn't be split by a dot, it doesn't have an extension
+            if (nameSplit.Length >= 2) {
+                // otherwise, the extension is the last element of the split name
+                string extension = nameSplit.Last();
+
+                // iterate over the filetype registry to find the matching type for the extension
+                foreach (FileType type in FileExtensionsByType.Keys) {
+                    if (FileExtensionsByType[type].Contains(extension)) {
+                        return type;
+                    }
+                }
+            }
+
+            return FileType.None;
+        }
 
         /// <summary> Ensure the file pointed to by this <see cref="EngineFileLocation"/> exists. </summary>
         public void EnsureExists() {

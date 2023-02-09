@@ -6,7 +6,9 @@ using FWGPUE.IO;
 using static ImGuiNET.ImGuiWindowFlags;
 
 class MainMenu : Scene {
-    public override void Load() { }
+    public override void Load() {
+        Load<MainMenu>();
+    }
 
     public override void Tick() {
         base.Tick();

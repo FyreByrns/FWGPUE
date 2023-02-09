@@ -2,6 +2,7 @@
 global using TextAlignment = FWGPUE.Engine.TextAlignment;
 global using Key = Silk.NET.Input.Key;
 global using MouseButton = Silk.NET.Input.MouseButton;
+global using FileType = FWGPUE.IO.EngineFileLocation.FileType;
 
 global using static FWGPUE.Engine;
 global using static FWGPUE.Input;

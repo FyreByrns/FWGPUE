@@ -1,0 +1,5 @@
+Assets = [
+	square       assets/default.png
+	otherSquare  assets/otherDefault.png
+	testText     SCENE_ASSETS/text.txt
+]
