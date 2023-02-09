@@ -80,7 +80,7 @@ abstract class Scene {
                 if (location.Exists()) {
                     if (location.IsFile) {
                         // if the asset is an image, add it to the list of images to be put in a per-scene atlas
-                        if(location.Type() == FileType.Image) {
+                        if (location.Type() == FileType.Image) {
                             imagesToAddToAtlas.Add((name, location));
                         }
                     }
@@ -95,8 +95,9 @@ abstract class Scene {
 
         // add all images in the asset list to an atlas
         Atlas = new();
-        
+
         // create packing rectangles
+        int padding = 4; // so anti-aliasing into the atlas doesn't get ugly
         PackingRectangle[] packingRectangles = new PackingRectangle[imagesToAddToAtlas.Count];
         Texture[] loadedTextures = new Texture[imagesToAddToAtlas.Count];
         for (int i = 0; i < imagesToAddToAtlas.Count; i++) {
@@ -104,10 +105,10 @@ abstract class Scene {
             loadedTextures[i] = new(new ByteFile(imageLocation));
 
             packingRectangles[i].Id = i;
-            packingRectangles[i].Width = (uint)loadedTextures[i].Width;
-            packingRectangles[i].Height = (uint)loadedTextures[i].Height;
+            packingRectangles[i].Width = (uint)(loadedTextures[i].Width + padding);
+            packingRectangles[i].Height = (uint)(loadedTextures[i].Height + padding);
         }
-        
+
         // pack rectangles
         RectanglePacker.Pack(packingRectangles, out var totalSize);
 
@@ -123,8 +124,8 @@ abstract class Scene {
             string name = imagesToAddToAtlas[rect.Id].name;
             Texture texture = loadedTextures[rect.Id];
 
-            atlasTexture.SetData(rect, texture.Data);
-            Atlas.SpriteDefinitions[name] = new SpriteAtlasFile.SpriteRect(rect.X, rect.Y, rect.Width, rect.Height);
+            atlasTexture.SetData(new((int)rect.X, (int)rect.Y, (int)rect.Width - padding, (int)rect.Height - padding), texture.Data);
+            Atlas.SpriteDefinitions[name] = new SpriteAtlasFile.SpriteRect(rect.X, rect.Y, rect.Width - padding, rect.Height - padding);
 
             // don't eat all vram
             texture.Dispose();

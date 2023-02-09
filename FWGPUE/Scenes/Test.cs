@@ -35,7 +35,8 @@ class Test : Scene {
             Texture = "otherSquare",
             Transform = {
                 Scale = new(10, 10, 1),
-                Position = new(100, 100, 0)
+                Position = new(100, 100, 0),
+                Rotation = new(0, TotalTimeInScene / 20f, 0.2f)
             }
         });
 
