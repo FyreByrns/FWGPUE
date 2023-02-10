@@ -8,6 +8,8 @@ using RectpackSharp;
 namespace FWGPUE.Scenes;
 
 abstract class Scene {
+    public const int AtlasPackingPadding = 2;
+
     public float TotalTimeInScene { get; protected set; }
 
     public DataMarkupFile? Globals { get; protected set; }
@@ -97,7 +99,6 @@ abstract class Scene {
         Atlas = new();
 
         // create packing rectangles
-        int padding = 4; // so anti-aliasing into the atlas doesn't get ugly
         PackingRectangle[] packingRectangles = new PackingRectangle[imagesToAddToAtlas.Count];
         Texture[] loadedTextures = new Texture[imagesToAddToAtlas.Count];
         for (int i = 0; i < imagesToAddToAtlas.Count; i++) {
@@ -105,8 +106,8 @@ abstract class Scene {
             loadedTextures[i] = new(new ByteFile(imageLocation));
 
             packingRectangles[i].Id = i;
-            packingRectangles[i].Width = (uint)(loadedTextures[i].Width + padding);
-            packingRectangles[i].Height = (uint)(loadedTextures[i].Height + padding);
+            packingRectangles[i].Width = (uint)(loadedTextures[i].Width + AtlasPackingPadding);
+            packingRectangles[i].Height = (uint)(loadedTextures[i].Height + AtlasPackingPadding);
         }
 
         // pack rectangles
@@ -124,8 +125,8 @@ abstract class Scene {
             string name = imagesToAddToAtlas[rect.Id].name;
             Texture texture = loadedTextures[rect.Id];
 
-            atlasTexture.SetData(new((int)rect.X, (int)rect.Y, (int)rect.Width - padding, (int)rect.Height - padding), texture.Data);
-            Atlas.SpriteDefinitions[name] = new SpriteAtlasFile.SpriteRect(rect.X, rect.Y, rect.Width - padding, rect.Height - padding);
+            atlasTexture.SetData(new((int)rect.X, (int)rect.Y, (int)rect.Width - AtlasPackingPadding, (int)rect.Height - AtlasPackingPadding), texture.Data);
+            Atlas.SpriteDefinitions[name] = new SpriteAtlasFile.SpriteRect(rect.X, rect.Y, rect.Width - AtlasPackingPadding, rect.Height - AtlasPackingPadding);
 
             // don't eat all vram
             texture.Dispose();

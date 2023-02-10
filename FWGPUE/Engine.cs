@@ -43,18 +43,13 @@ static class Engine {
 
     public static Camera? Camera { get; set; }
 
-    #region sprites
-
     public static SpriteBatcher? SpriteBatcher { get; private set; }
-    public static SpriteAtlasFile? SpriteAtlas { get; private set; }
-
-    #endregion sprites
-
-    #region text
 
     public static FontManager? FontManager { get; private set; }
     public static FontRenderer? FontRenderer { get; private set; }
     public static FontSystem? FontSystem { get; private set; }
+
+    public static GeometryRenderer? GeometryRenderer { get; private set; }
 
     public enum TextAlignment {
         None = 0,
@@ -84,7 +79,52 @@ static class Engine {
         TextThisFrame.Add(new(text, location, colour, size, new(1, 1), rotation, alignment));
     }
 
-    #endregion text 
+    /// <summary>
+    /// Draw an image from the current scene's atlas.
+    /// </summary>
+    public static void DrawImage(string name, Vector2 location, float z = 0, float size = 1, float rotation = 0) {
+        SpriteBatcher!.DrawSprite(new Sprite(CurrentScene!.Atlas!) {
+            Texture = name,
+            Transform = {
+                Position = new Vector3(location, z),
+                Scale = new Vector3(size, size, 1),
+                Rotation = new Vector3(0, 0, rotation)
+            }
+        });
+    }
+
+    public record VertexDrawData(Vector3 colour, Vector3 position);
+    public static List<VertexDrawData> VerticesThisFrame = new();
+
+    public static void DrawTriangle(Vector3 colour, Vector2 a, Vector2 b, Vector2 c) {
+        VerticesThisFrame.Add(new VertexDrawData(colour, new(a, 1)));
+        VerticesThisFrame.Add(new VertexDrawData(colour, new(b, 1)));
+        VerticesThisFrame.Add(new VertexDrawData(colour, new(c, 1)));
+    }
+    public static void DrawLine(Vector3 colour, Vector2 start, Vector2 end, float thickness = 0.5f) {
+        float angleBetween = (float)Math.Atan2(start.Y - end.Y, start.X - end.X);
+        float anglePlusHalf = angleBetween + TurnsToRadians(0.5f);
+
+        float cos = (float)Math.Cos(anglePlusHalf);
+        float sin = (float)Math.Sin(anglePlusHalf);
+
+        thickness /= 2;
+        Vector2 a = new(
+            start.X + cos * thickness - sin * thickness,
+            start.Y + sin * thickness + cos * thickness);
+        Vector2 b = new(
+            start.X + cos * thickness - sin * -thickness,
+            start.Y + sin * thickness + cos * -thickness);
+        Vector2 c = new(
+            end.X + cos * thickness - sin * thickness,
+            end.Y + sin * thickness + cos * thickness);
+        Vector2 d = new(
+            end.X + cos * thickness - sin * -thickness,
+            end.Y + sin * thickness + cos * -thickness);
+
+        DrawTriangle(colour, a, c, b);
+        DrawTriangle(colour, b, c, d);
+    }
 
     #endregion rendering
 
@@ -132,9 +172,6 @@ static class Engine {
         Camera = new Camera(new Vector2(0), 100);
 
         SpriteBatcher = new();
-        SpriteAtlas = new("assets/atlases/main.fwgm");
-        SpriteAtlas.Load();
-        SpriteAtlas.LoadTexture();
 
         FontManager = new FontManager();
         FontFile fonts = new FontFile("assets/fonts/fonts.fwgm");
@@ -150,6 +187,8 @@ static class Engine {
         FontRenderer = new FontRenderer();
 
         ImGuiController = new ImGuiController(Gl, Window, Input.InputContext);
+
+        GeometryRenderer = new GeometryRenderer();
     }
 
     #endregion initialization
@@ -204,13 +243,13 @@ static class Engine {
     }
 
     private static void Render(double elapsed) {
+        // update ImGui
         ImGuiController!.Update((float)elapsed);
 
+        // clear backbuffer
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-        SpriteBatcher!.DrawAll();
-        SpriteBatcher.Clear();
-
+        // draw all batched fonts
         float lastSize = 0;
         DynamicSpriteFont? font = null;
         foreach (TextDrawData textToDraw in TextThisFrame) {
@@ -243,8 +282,23 @@ static class Engine {
         FontRenderer?.End();
         TextThisFrame.Clear();
 
+        // render the current frame
         CurrentScene?.Render();
 
+        // draw all batched sprites
+        SpriteBatcher!.DrawAll();
+        SpriteBatcher.Clear();
+
+        DrawLine(new(1, 1, 1), new(100, 100), MousePosition());
+
+        // draw all batched raw geometry
+        foreach (VertexDrawData vertex in VerticesThisFrame) {
+            GeometryRenderer?.PushVertex(vertex.colour, vertex.position);
+        }
+        GeometryRenderer?.FlushVertexBuffer();
+        VerticesThisFrame.Clear();
+
+        // render ImGui
         ImGuiController.Render();
     }
 
