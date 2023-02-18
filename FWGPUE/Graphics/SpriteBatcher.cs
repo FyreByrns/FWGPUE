@@ -47,10 +47,12 @@ class SpriteBatcher {
     }
 
     public void DrawAll() {
+        Gl!.Disable(EnableCap.DepthTest);
         foreach (SpriteAtlasFile atlas in SpritesByAtlas.Keys) {
             List<Sprite> SpritesThisFrame = SpritesByAtlas[atlas];
             SpritesThisFrame = SpritesThisFrame.OrderBy(x => x.Transform.Position.Z).ToList();
 
+            Gl!.BindVertexArray(quadVAO);
             // get offsets
             Matrix4x4[] offsets = new Matrix4x4[SpritesThisFrame.Count];
             for (int i = 0; i < offsets.Length; i++) {
@@ -97,7 +99,6 @@ class SpriteBatcher {
                 atlas.Texture.Bind();
             }
 
-            Gl!.BindVertexArray(quadVAO);
             Gl!.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, (uint)SpritesThisFrame.Count);
         }
     }

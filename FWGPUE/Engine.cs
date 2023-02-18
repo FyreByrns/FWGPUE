@@ -249,6 +249,10 @@ static class Engine {
         // clear backbuffer
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
+        // draw all batched sprites
+        SpriteBatcher!.DrawAll();
+        SpriteBatcher.Clear();
+
         // draw all batched fonts
         float lastSize = 0;
         DynamicSpriteFont? font = null;
@@ -284,12 +288,6 @@ static class Engine {
 
         // render the current frame
         CurrentScene?.Render();
-
-        // draw all batched sprites
-        SpriteBatcher!.DrawAll();
-        SpriteBatcher.Clear();
-
-        DrawLine(new(1, 1, 1), new(100, 100), MousePosition());
 
         // draw all batched raw geometry
         foreach (VertexDrawData vertex in VerticesThisFrame) {
