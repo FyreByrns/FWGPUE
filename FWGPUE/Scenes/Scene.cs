@@ -10,10 +10,12 @@ namespace FWGPUE.Scenes;
 abstract class Scene {
     public const int AtlasPackingPadding = 2;
 
+    public string? Directory { get; private set; }
+
     public float TotalTimeInScene { get; protected set; }
 
     public DataMarkupFile? Globals { get; protected set; }
-    public DataMarkupFile? Assets { get; protected set; }
+    public AssetManifestFile? Assets { get; protected set; }
 
     public SpriteAtlasFile? Atlas { get; protected set; }
 
@@ -54,43 +56,23 @@ abstract class Scene {
 
         // get scene directory from scene type name
         string sceneNameLower = typeof(T).Name.ToLower();
-        string sceneDirectory = $"assets/scenes/{sceneNameLower}";
-        string sceneGlobals = $"{sceneDirectory}/globals.fwgm";
+        Directory = $"assets/scenes/{sceneNameLower}";
+        string sceneGlobals = $"{Directory}/globals.fwgm";
 
         Globals = new DataMarkupFile(sceneGlobals);
         Globals.Location!.EnsureExists();
         Globals.Load();
 
         // load globals
-        Assets = new DataMarkupFile($"{sceneDirectory}/asset-manifest.fwgm");
+        Assets = new AssetManifestFile($"{Directory}/asset-manifest.fwgm");
         Assets.Location!.EnsureExists();
-        Assets.Load();
+        Assets.Load(("SCENE_ASSETS", $"{Directory}/assets/"));
 
         // load scene assets from assets list
         List<(string name, EngineFileLocation location)> imagesToAddToAtlas = new();
 
-        if (Assets.HasToken("Assets")) {
-            string[] assetCollection = Assets.GetToken("Assets").Contents.Collection;
-            for (int i = 0; i < assetCollection.Length; i += 2) {
-                string name = assetCollection[i];
-                string strLocation = assetCollection[i + 1];
-
-                // substitute SCENE_ASSETS in path for the path to the scene's asset directory
-                strLocation = strLocation.Replace("SCENE_ASSETS", $"{sceneDirectory}/assets");
-
-                EngineFileLocation location = strLocation;
-                if (location.Exists()) {
-                    if (location.IsFile) {
-                        // if the asset is an image, add it to the list of images to be put in a per-scene atlas
-                        if (location.Type() == FileType.Image) {
-                            imagesToAddToAtlas.Add((name, location));
-                        }
-                    }
-                }
-                else {
-                    Log.Error($"listed asset {name} does not exist at {strLocation}");
-                }
-            }
+        foreach (Asset imageAsset in Assets.ImageAssets) {
+            imagesToAddToAtlas.Add((imageAsset.Name, imageAsset.Location));
         }
 
         Log.Info($"number of images: {imagesToAddToAtlas.Count}");
@@ -99,15 +81,15 @@ abstract class Scene {
         Atlas = new();
 
         // create packing rectangles
-        PackingRectangle[] packingRectangles = new PackingRectangle[imagesToAddToAtlas.Count];
-        Texture[] loadedTextures = new Texture[imagesToAddToAtlas.Count];
-        for (int i = 0; i < imagesToAddToAtlas.Count; i++) {
-            EngineFileLocation imageLocation = imagesToAddToAtlas[i].location;
+        PackingRectangle[] packingRectangles = new PackingRectangle[Assets.ImageAssets.Count];
+        Texture[] loadedTextures = new Texture[Assets.ImageAssets.Count];
+        for (int i = 0; i < Assets.ImageAssets.Count; i++) {
+            EngineFileLocation imageLocation = Assets.ImageAssets[i].Location;
             loadedTextures[i] = new(new ByteFile(imageLocation));
 
             packingRectangles[i].Id = i;
-            packingRectangles[i].Width =    (uint)/*NearestPowerOfTwo*/(loadedTextures[i].Width + AtlasPackingPadding);
-            packingRectangles[i].Height =   (uint)/*NearestPowerOfTwo*/(loadedTextures[i].Height + AtlasPackingPadding);
+            packingRectangles[i].Width = (uint)(loadedTextures[i].Width + AtlasPackingPadding);
+            packingRectangles[i].Height = (uint)(loadedTextures[i].Height + AtlasPackingPadding);
         }
 
         // pack rectangles
