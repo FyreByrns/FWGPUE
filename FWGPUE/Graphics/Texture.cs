@@ -5,6 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Silk.NET.Core.Native;
 using System.Runtime.InteropServices;
+using SixLabors.ImageSharp.Advanced;
 
 namespace FWGPUE.Graphics;
 
@@ -29,23 +30,12 @@ class Texture : IDisposable {
         Gl.TexParameter(Target, TextureParameterName.TextureWrapT, (int)GLEnum.ClampToEdge);
         Gl.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
         Gl.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
-        //Gl.GenerateMipmap(Target);
     }
 
     public unsafe void SetData(System.Drawing.Rectangle bounds, byte[] data) {
         Bind();
-        fixed (byte* ptr = data) {
-            Gl!.TexSubImage2D(
-            target: TextureTarget.Texture2D,
-            level: 0,
-            xoffset: bounds.Left,
-            yoffset: bounds.Top,
-            width: (uint)bounds.Width,
-            height: (uint)bounds.Height,
-            format: PixelFormat.Rgba,
-            type: PixelType.UnsignedByte,
-            pixels: ptr
-        );
+        fixed (byte* d = data) {
+            Gl!.TexSubImage2D(Target, 0, bounds.Left, bounds.Top, (uint)bounds.Width, (uint)bounds.Height, PixelFormat.Rgba, PixelType.UnsignedByte, d);
         }
     }
 
@@ -82,20 +72,14 @@ class Texture : IDisposable {
             Width = img.Width;
             Height = img.Height;
             Data = new byte[Width * Height * 4];
+            img.CopyPixelDataTo(Data);
 
             unsafe {
-                Gl.TexImage2D(Target, 0, Format, (uint)img.Width, (uint)img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+                Gl.TexImage2D(Target, 0, Format, (uint)Width, (uint)Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
-                // load image row-by-row because imagesharp is bad
-                img.ProcessPixelRows(accessor => {
-                    for (int y = 0; y < accessor.Height; y++) {
-                        fixed (void* data = accessor.GetRowSpan(y)) {
-                            Gl.TexSubImage2D(Target, 0, 0, y, (uint)accessor.Width, 1, PixelFormat.Rgba, PixelType.UnsignedByte, data);
-
-                            Marshal.Copy(new IntPtr(data), Data, y * Width * 4, Width * 4);
-                        }
-                    }
-                });
+                fixed (void* data = Data) {
+                    Gl.TexImage2D(Target, 0, InternalFormat.Rgba, (uint)Width, (uint)Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+                }
             }
         }
 

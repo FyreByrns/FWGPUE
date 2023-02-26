@@ -300,7 +300,7 @@ static class Engine {
         ImGuiController.Render();
     }
 
-    #endregion per-frame
+    #endregion per-frame    
 
     public static void Begin() {
         Log.Info("loading config");

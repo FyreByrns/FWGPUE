@@ -106,17 +106,22 @@ abstract class Scene {
             loadedTextures[i] = new(new ByteFile(imageLocation));
 
             packingRectangles[i].Id = i;
-            packingRectangles[i].Width = (uint)(loadedTextures[i].Width + AtlasPackingPadding);
-            packingRectangles[i].Height = (uint)(loadedTextures[i].Height + AtlasPackingPadding);
+            packingRectangles[i].Width =    (uint)/*NearestPowerOfTwo*/(loadedTextures[i].Width + AtlasPackingPadding);
+            packingRectangles[i].Height =   (uint)/*NearestPowerOfTwo*/(loadedTextures[i].Height + AtlasPackingPadding);
         }
 
         // pack rectangles
         RectanglePacker.Pack(packingRectangles, out var totalSize);
 
         // create a texture to hold all the images
-        Texture atlasTexture = new((int)totalSize.Width, (int)totalSize.Height);
+        int power = 2;
+        int widthPowerOf = (int)Math.Pow(power, Math.Ceiling(Math.Log(totalSize.Height)/Math.Log(power)));
+        Texture atlasTexture = new(widthPowerOf, (int)totalSize.Height);
         Atlas.Texture = atlasTexture;
-        Log.Info($"atlas is {totalSize.Width}x{totalSize.Height}");
+        Log.Info($"atlas is {widthPowerOf}x{totalSize.Height}");
+
+        // set entire atlas to blank, to clear uninitialized memory
+        atlasTexture.SetData(new(0, 0, atlasTexture.Width, atlasTexture.Height), new byte[atlasTexture.Width * atlasTexture.Height * 4]);
 
         // copy all the individual textures into the atlas texture
         for (int i = 0; i < packingRectangles.Length; i++) {

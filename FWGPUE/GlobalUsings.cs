@@ -17,5 +17,12 @@ namespace FWGPUE {
         public static float TurnsToRadians(float turns) {
             return turns * MathF.PI * 2f;
         }
+
+        public static int NearestPowerOfTwo(int input) {
+            return NearestPowerOf(2, input);
+        }
+        public static int NearestPowerOf(int power, int input) {
+            return (int)Math.Pow(power, Math.Ceiling(Math.Log(input) / Math.Log(power)));
+        }
     }
 }
