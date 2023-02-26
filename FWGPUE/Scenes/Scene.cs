@@ -114,11 +114,9 @@ abstract class Scene {
         RectanglePacker.Pack(packingRectangles, out var totalSize);
 
         // create a texture to hold all the images
-        int power = 2;
-        int widthPowerOf = (int)Math.Pow(power, Math.Ceiling(Math.Log(totalSize.Height)/Math.Log(power)));
-        Texture atlasTexture = new(widthPowerOf, (int)totalSize.Height);
+        Texture atlasTexture = new((int)totalSize.Width, (int)totalSize.Height);
         Atlas.Texture = atlasTexture;
-        Log.Info($"atlas is {widthPowerOf}x{totalSize.Height}");
+        Log.Info($"atlas is {totalSize.Width}x{totalSize.Height}");
 
         // set entire atlas to blank, to clear uninitialized memory
         atlasTexture.SetData(new(0, 0, atlasTexture.Width, atlasTexture.Height), new byte[atlasTexture.Width * atlasTexture.Height * 4]);
