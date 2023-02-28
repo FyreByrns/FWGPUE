@@ -123,9 +123,9 @@ abstract class Scene {
 
     public virtual void Tick() {
         TotalTimeInScene += TickTime;
-
-        DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", new(0, Config.ScreenHeight * 0.98f), FSColor.Tan);
     }
 
-    public virtual void Render() { }
+    public virtual void Render() { 
+        DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
+    }
 }

@@ -49,8 +49,6 @@ class Test : Scene {
             }
         });
 
-        DrawText($"{MousePosition()} -> {Camera!.ScreenToWorld(MousePosition()):##.##} -> {Camera.WorldToScreen(MousePosition()):##.##}", Camera!.ScreenToWorld(MousePosition()), FSColor.Khaki, 20);
-
         foreach (Node2D n in baseNode.AllNodes()) {
             DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
         }
