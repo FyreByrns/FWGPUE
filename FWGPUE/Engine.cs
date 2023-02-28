@@ -41,7 +41,7 @@ static class Engine {
 
     public static ImGuiController? ImGuiController { get; private set; }
 
-    public static Camera? Camera { get; set; }
+    public static OrthoCamera2D? Camera { get; set; }
 
     public static SpriteBatcher? SpriteBatcher { get; private set; }
 
@@ -169,7 +169,7 @@ static class Engine {
         Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
         Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        Camera = new Camera(new Vector2(0), 100);
+        Camera = new OrthoCamera2D(new Vector2(0), 100);
 
         SpriteBatcher = new();
 
@@ -249,6 +249,9 @@ static class Engine {
         // clear backbuffer
         Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
+        // render the current frame
+        CurrentScene?.Render();
+
         // draw all batched sprites
         SpriteBatcher!.DrawAll();
         SpriteBatcher.Clear();
@@ -261,7 +264,7 @@ static class Engine {
                 FontRenderer?.End();
                 lastSize = textToDraw.size;
                 font = FontSystem?.GetFont(textToDraw.size);
-                FontRenderer?.Begin(Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight));
+                FontRenderer?.Begin(Camera!.ViewMatrix * Camera.ProjectionMatrix);
             }
 
             Vector2 origin = new();
@@ -285,9 +288,6 @@ static class Engine {
         }
         FontRenderer?.End();
         TextThisFrame.Clear();
-
-        // render the current frame
-        CurrentScene?.Render();
 
         // draw all batched raw geometry
         foreach (VertexDrawData vertex in VerticesThisFrame) {

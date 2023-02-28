@@ -36,7 +36,7 @@ namespace FWGPUE.IO {
 
         [ConfigValue]
         [Comment("how many times a second the engine ticks")]
-        public int TickRate { get; set; } = 240;
+        public int TickRate { get; set; } = 120;
 
         [ConfigValue]
         [Comment("log level (Inane = -1, All = 0, Warn = 1, Error = 2, None = 3)")]

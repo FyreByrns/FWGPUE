@@ -32,10 +32,20 @@ class SpriteBatcher {
 
     public Shader Shader { get; set; }
 
+    public short DrawSprite(Vector2 location, float z, SpriteAtlasFile atlas, string name) {
+        Sprite sprite = new(atlas) {
+            Texture = name,
+
+            Transform = {
+                Position = new(location, z)
+            }
+        };
+        return DrawSprite(sprite);
+    } 
     /// <summary>
     /// Register sprite for drawing this frame.
     /// </summary>
-    public void DrawSprite(Sprite sprite) {
+    public short DrawSprite(Sprite sprite) {
         if (!SpritesByAtlas.ContainsKey(sprite.Atlas!)) {
             SpritesByAtlas[sprite.Atlas!] = new List<Sprite>();
         }
@@ -44,6 +54,8 @@ class SpriteBatcher {
             SpritesByAtlas[sprite.Atlas!].Add(sprite);
             RegisteredSpriteIDs.Add(sprite.ID);
         }
+
+        return sprite.ID;
     }
 
     public void DrawAll() {
@@ -87,8 +99,8 @@ class SpriteBatcher {
                 }
             }
 
-            var view = Engine.Camera!.ViewMatrix;
-            var projection = Engine.Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
+            var view = Camera!.ViewMatrix;
+            var projection = Camera!.ProjectionMatrix;
 
             Shader.Use();
             Shader.SetUniform("uView", view);

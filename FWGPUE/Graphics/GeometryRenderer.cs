@@ -39,8 +39,8 @@ namespace FWGPUE.Graphics {
         }
 
         public void FlushVertexBuffer() {
-            var view = Engine.Camera!.ViewMatrix;
-            var projection = Engine.Camera!.ProjectionMatrix(Config.ScreenWidth, Config.ScreenHeight);
+            var view = Camera!.ViewMatrix;
+            var projection = Camera!.ProjectionMatrix;
 
             Shader.Use();
             Shader.SetUniform("uView", view);

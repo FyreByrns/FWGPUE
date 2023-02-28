@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using FontStashSharp;
+using System.Numerics;
 
 namespace FWGPUE.Scenes;
 
@@ -13,16 +14,25 @@ class Test : Scene {
         }).AddChild(new Node2D() {
             Offset = new(10, 10)
         });
-
     }
 
     public override void Tick() {
         base.Tick();
 
-        baseNode.Offset = MousePosition();
+        //baseNode.Offset = MousePosition();
         baseNode.Rotation = TotalTimeInScene / 10f;
         baseNode.Children.First().Rotation = TotalTimeInScene / 5f;
 
+        if (KeyDown(Key.Up)) { Camera!.Position.ChangeBy(new(0, -50 * TickTime, 0)); }
+        if (KeyDown(Key.Down)) { Camera!.Position.ChangeBy(new(0, 50 * TickTime, 0)); }
+        if (KeyDown(Key.Left)) { Camera!.Position.ChangeBy(new(-50 * TickTime, 0, 0)); }
+        if (KeyDown(Key.Right)) { Camera!.Position.ChangeBy(new(50 * TickTime, 0, 0)); }
+    }
+
+    public override void Render() {
+        base.Render();
+
+        SpriteBatcher!.DrawSprite(new(100 + (float)Math.Sin(TotalTimeInScene) * 100, 100), 0, Atlas, "square");
         SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
             Texture = "square",
             Transform = {
@@ -30,7 +40,6 @@ class Test : Scene {
                 Position = new(100, 100, 1)
             }
         });
-
         SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
             Texture = "otherSquare",
             Transform = {
@@ -40,13 +49,11 @@ class Test : Scene {
             }
         });
 
+        DrawText($"{MousePosition()} -> {Camera!.ScreenToWorld(MousePosition()):##.##} -> {Camera.WorldToScreen(MousePosition()):##.##}", Camera!.ScreenToWorld(MousePosition()), FSColor.Khaki, 20);
+
         foreach (Node2D n in baseNode.AllNodes()) {
             DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
         }
-    }
-
-    public override void Render() {
-        base.Render();
 
         SpriteBatcher.DrawAll();
         SpriteBatcher.Clear();
