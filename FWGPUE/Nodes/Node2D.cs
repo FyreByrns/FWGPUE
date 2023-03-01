@@ -1,9 +1,13 @@
-﻿using FWGPUE.IO;
+﻿using FWGPUE.Graphics;
+using FWGPUE.IO;
 using System.Numerics;
 
-namespace FWGPUE;
-
+namespace FWGPUE.Nodes;
 class Node2D {
+    public string? Name { get; set; }
+
+    public bool Visible { get; set; } = true;
+
     public Node2D? Parent { get; protected set; }
     public bool IsBase => Parent is null;
 
@@ -58,7 +62,7 @@ class Node2D {
         return Parent?.AddChild(node);
     }
 
-    public IEnumerable<Node2D> AllNodes() {
+    public virtual IEnumerable<Node2D> AllNodes() {
         foreach (Node2D child in Children) {
             foreach (Node2D c in child.AllNodes()) {
                 yield return c;
@@ -69,7 +73,7 @@ class Node2D {
     public IEnumerable<Node2D> NodesToThisFromBase() {
         // get path to current node
         Node2D? current = this;
-        Stack<Node2D> path = new Stack<Node2D>();
+        Stack<Node2D> path = new();
 
         while (current != null) {
             path.Push(current);
@@ -80,4 +84,19 @@ class Node2D {
             yield return node;
         }
     }
+
+    public virtual void Tick() { }
+    public virtual void Draw() { }
+}
+
+class SpriteNode : Node2D {
+    public string? Sprite { get; set; }
+    public float Z { get; set; } = 0;
+    public float Scale { get; set; } = 1;
+
+    public override void Draw() {
+        base.Draw();
+        DrawImage(Sprite ?? "", RelativeOffset(), Z, Scale, RelativeRotation());
+    }
+
 }

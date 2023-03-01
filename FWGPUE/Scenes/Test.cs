@@ -1,27 +1,33 @@
 ﻿using FontStashSharp;
+using FWGPUE.Nodes;
 using System.Numerics;
 
 namespace FWGPUE.Scenes;
 
 class Test : Scene {
-    Node2D baseNode = new();
+    Node2D MouseFollowNode;
 
     public override void Load() {
         Load<Test>();
 
-        baseNode.AddChild(new Node2D() {
+        MouseFollowNode = Nodes.Root.AddChild(new Node2D());
+
+        MouseFollowNode.AddChild(new Node2D() {
             Offset = new(100, 10)
         }).AddChild(new Node2D() {
-            Offset = new(10, 10)
+            Offset = new(50, 10)
+        }).AddChild(new SpriteNode() { 
+            Offset = new(60, 0),
+            Sprite = "square"
         });
     }
 
     public override void Tick() {
         base.Tick();
 
-        //baseNode.Offset = MousePosition();
-        baseNode.Rotation = TotalTimeInScene / 10f;
-        baseNode.Children.First().Rotation = TotalTimeInScene / 5f;
+        MouseFollowNode.Offset = Camera.ScreenToWorld(MousePosition());
+        MouseFollowNode.Rotation = TotalTimeInScene / 10f;
+        MouseFollowNode.Children.First().Rotation = TotalTimeInScene / 5f;
 
         if (KeyDown(Key.Up)) { Camera!.Position.ChangeBy(new(0, -50 * TickTime, 0)); }
         if (KeyDown(Key.Down)) { Camera!.Position.ChangeBy(new(0, 50 * TickTime, 0)); }
@@ -32,29 +38,25 @@ class Test : Scene {
     public override void Render() {
         base.Render();
 
-        SpriteBatcher!.DrawSprite(new(100 + (float)Math.Sin(TotalTimeInScene) * 100, 100), 0, Atlas, "square");
-        SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
-            Texture = "square",
-            Transform = {
-                Scale = new(10, 10, 1),
-                Position = new(100, 100, 1)
-            }
-        });
-        SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
-            Texture = "otherSquare",
-            Transform = {
-                Scale = new(10, 10, 1),
-                Position = new(100, 100, 0),
-                Rotation = new(0, TotalTimeInScene / 20f, 0.2f)
-            }
-        });
+        //SpriteBatcher!.DrawSprite(new(100 + (float)Math.Sin(TotalTimeInScene) * 100, 100), 0, Atlas, "square");
+        //SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
+        //    Texture = "square",
+        //    Transform = {
+        //        Scale = new(10, 10, 1),
+        //        Position = new(100, 100, 1)
+        //    }
+        //});
+        //SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
+        //    Texture = "otherSquare",
+        //    Transform = {
+        //        Scale = new(10, 10, 1),
+        //        Position = new(100, 100, 0),
+        //        Rotation = new(0, TotalTimeInScene / 20f, 0.2f)
+        //    }
+        //});
 
-        foreach (Node2D n in baseNode.AllNodes()) {
-            DrawTextRotated($"#", n.RelativeOffset(), n.RelativeRotation(), TextColour.AliceBlue, size: 30, alignment: TextAlignment.Center);
-        }
-
-        SpriteBatcher.DrawAll();
-        SpriteBatcher.Clear();
+        Nodes.DrawNodes();
+        Nodes.DrawDebugConnections();
     }
 
     public override void Unload() { }

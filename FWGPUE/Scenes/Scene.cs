@@ -4,6 +4,7 @@ using static FWGPUE.IO.DataMarkupFile;
 
 using FWGPUE.Graphics;
 using RectpackSharp;
+using FWGPUE.Nodes;
 
 namespace FWGPUE.Scenes;
 
@@ -18,6 +19,8 @@ abstract class Scene {
     public AssetManifestFile? Assets { get; protected set; }
 
     public SpriteAtlasFile? Atlas { get; protected set; }
+
+    public NodeCollection Nodes { get; } = new();
 
     public T? GetGlobal<T>(string globalName) {
         if (Globals!.TryGetToken(globalName, out var token)) {
@@ -125,7 +128,7 @@ abstract class Scene {
         TotalTimeInScene += TickTime;
     }
 
-    public virtual void Render() { 
+    public virtual void Render() {
         DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
     }
 }
