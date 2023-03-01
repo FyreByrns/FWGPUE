@@ -55,7 +55,10 @@ class Test : Scene {
         //    }
         //});
 
+        DrawCircle(new Vector3(1, 1, 1), MousePosition(), 4);
+
         Nodes.DrawNodes();
+        Nodes.DrawDebugNodes();
         Nodes.DrawDebugConnections();
     }
 

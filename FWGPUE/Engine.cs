@@ -8,6 +8,7 @@ using FontStashSharp;
 
 using FWGPUE.Graphics;
 using FWGPUE.Scenes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FWGPUE;
 
@@ -105,25 +106,33 @@ static class Engine {
         float angleBetween = (float)Math.Atan2(start.Y - end.Y, start.X - end.X);
         float anglePlusHalf = angleBetween + TurnsToRadians(0.5f);
 
-        float cos = (float)Math.Cos(anglePlusHalf);
-        float sin = (float)Math.Sin(anglePlusHalf);
-
         thickness /= 2;
-        Vector2 a = new(
-            start.X + cos * thickness - sin * thickness,
-            start.Y + sin * thickness + cos * thickness);
-        Vector2 b = new(
-            start.X + cos * thickness - sin * -thickness,
-            start.Y + sin * thickness + cos * -thickness);
-        Vector2 c = new(
-            end.X + cos * thickness - sin * thickness,
-            end.Y + sin * thickness + cos * thickness);
-        Vector2 d = new(
-            end.X + cos * thickness - sin * -thickness,
-            end.Y + sin * thickness + cos * -thickness);
+
+        Vector2 a = start + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, +thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
+        Vector2 b = start + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, -thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
+        Vector2 c = end + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, +thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
+        Vector2 d = end + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, -thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
 
         DrawTriangle(colour, a, c, b);
         DrawTriangle(colour, b, c, d);
+    }
+    public static void DrawCircle(Vector3 colour, Vector2 location, float radius) {
+        const int vertices = 10;
+        const float turnsPer = 1f / vertices;
+        Vector2[] points = new Vector2[vertices];
+
+        for (int i = 0; i < vertices; i++) {
+            points[i] = /*location + */Vector2.Transform(location, Matrix3x2.CreateTranslation(new(0, radius)) * Matrix3x2.CreateRotation(TurnsToRadians(turnsPer)));
+        }
+
+        for (int i = 0; i < vertices; i++) {
+            int next = i + 1;
+            if (next >= vertices) {
+                next = 0;
+            }
+
+            DrawLine(colour, points[i], points[next], 4);
+        }
     }
 
     #endregion rendering

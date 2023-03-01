@@ -29,13 +29,18 @@ namespace FWGPUE.Graphics {
                 Log.Error("too many vertices");
             }
 
-            _vertexData[_vertexIndex + 0] = position.X;
-            _vertexData[_vertexIndex + 1] = position.Y;
-            _vertexData[_vertexIndex + 2] = position.Z;
-            _vertexData[_vertexIndex + 3] = colour.X;
-            _vertexData[_vertexIndex + 4] = colour.Y;
-            _vertexData[_vertexIndex + 5] = colour.Z;
-            _vertexIndex += 6;
+            try {
+                _vertexData[_vertexIndex + 0] = position.X;
+                _vertexData[_vertexIndex + 1] = position.Y;
+                _vertexData[_vertexIndex + 2] = position.Z;
+                _vertexData[_vertexIndex + 3] = colour.X;
+                _vertexData[_vertexIndex + 4] = colour.Y;
+                _vertexData[_vertexIndex + 5] = colour.Z;
+                _vertexIndex += 6;
+            }
+            catch (Exception e) {
+                Log.Error(e.StackTrace);
+            }
         }
 
         public void FlushVertexBuffer() {

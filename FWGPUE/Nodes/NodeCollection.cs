@@ -65,6 +65,11 @@ class NodeCollection {
             }
         }
     }
+    public void DrawDebugNodes() {
+        foreach(Node2D node in Root.AllNodes()) {
+            DrawCircle(new(0, 1, 0), node.RelativeOffset(), 4);
+        }
+    }
 
     #endregion drawing
 }
