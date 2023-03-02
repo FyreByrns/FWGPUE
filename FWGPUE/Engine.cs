@@ -103,15 +103,15 @@ static class Engine {
         VerticesThisFrame.Add(new VertexDrawData(colour, new(c, 1)));
     }
     public static void DrawLine(Vector3 colour, Vector2 start, Vector2 end, float thickness = 0.5f) {
-        float angleBetween = (float)Math.Atan2(start.Y - end.Y, start.X - end.X);
-        float anglePlusHalf = angleBetween + TurnsToRadians(0.5f);
+        float angleBetween = RadiansToTurns((float)Math.Atan2(start.Y - end.Y, start.X - end.X));
+        float anglePlusHalf = angleBetween + 0.5f;
 
         thickness /= 2;
 
-        Vector2 a = start + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, +thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
-        Vector2 b = start + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, -thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
-        Vector2 c = end + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, +thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
-        Vector2 d = end + Vector2.Transform(new(0, 0), Matrix3x2.CreateTranslation(new(0, -thickness)) * Matrix3x2.CreateRotation(anglePlusHalf));
+        Vector2 a = start.Along(+thickness, anglePlusHalf);
+        Vector2 b = start.Along(-thickness, anglePlusHalf);
+        Vector2 c = end.Along(+thickness, anglePlusHalf);
+        Vector2 d = end.Along(-thickness, anglePlusHalf);
 
         DrawTriangle(colour, a, c, b);
         DrawTriangle(colour, b, c, d);
