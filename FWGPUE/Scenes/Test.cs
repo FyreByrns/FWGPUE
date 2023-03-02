@@ -10,12 +10,18 @@ class Test : Scene {
     public override void Load() {
         Load<Test>();
 
-        MouseFollowNode = Nodes.Root.AddChild(new Node2D());
+        MouseFollowNode = Nodes.Root.AddChild(new SpriteNode() {
+            Sprite = "otherSquare",
+            Scale = 2
+        });
 
-        MouseFollowNode.AddChild(new Node2D() {
-            Offset = new(100, 10)
-        }).AddChild(new Node2D() {
-            Offset = new(50, 10)
+        MouseFollowNode.AddChild(new SpriteNode() {
+            Offset = new(100, 10),
+            Sprite = "square",
+            Scale = 3,
+        }).AddChild(new SpriteNode() {
+            Offset = new(50, 10),
+            Sprite = "otherSquare"
         }).AddChild(new SpriteNode() { 
             Offset = new(60, 0),
             Sprite = "square"

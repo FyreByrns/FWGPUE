@@ -50,7 +50,7 @@ class NodeCollection {
     }
 
     public void DrawNodes() {
-        foreach (Node2D node in GetNodes(NodeFilters.Visible)) {
+        foreach (Node2D node in GetNodes(NodeFilters.Visible).Reverse()) {
             node.Draw();
         }
     }
