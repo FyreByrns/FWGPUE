@@ -122,7 +122,7 @@ static class Engine {
         Vector2[] points = new Vector2[vertices];
 
         for (int i = 0; i < vertices; i++) {
-            points[i] = /*location + */Vector2.Transform(location, Matrix3x2.CreateTranslation(new(0, radius)) * Matrix3x2.CreateRotation(TurnsToRadians(turnsPer)));
+            points[i] = location.Along(radius, turnsPer);
         }
 
         for (int i = 0; i < vertices; i++) {

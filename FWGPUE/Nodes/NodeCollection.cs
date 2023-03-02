@@ -1,9 +1,11 @@
-﻿namespace FWGPUE.Nodes;
+﻿using FWGPUE.IO;
+
+namespace FWGPUE.Nodes;
+
+delegate bool NodeFilter(Node2D node, object data);
+delegate Node2D? NodeTransformer(Node2D node, object data);
 
 class NodeCollection {
-    public delegate bool NodeFilter(Node2D node, object data);
-    public delegate Node2D? NodeTransformer(Node2D node, object data);
-
     public Node2D Root { get; } = new();
 
     #region wrangling
@@ -39,6 +41,30 @@ class NodeCollection {
         }
     }
 
+    public Node2D? AddChild(Node2D node, NodeFilter parentFilter, object data = null) {
+        IEnumerable<Node2D> possibleParents = GetNodes(parentFilter, data);
+        if (!possibleParents.Any()) {
+            Log.Error("filter for parent yielded no results.");
+            return null;
+        }
+
+        return possibleParents.First().AddChild(node);
+    }
+    public bool Remove(NodeFilter removalFilter, object data = null) {
+        IEnumerable<Node2D> removalCollection = GetNodes(removalFilter, data);
+        if (!removalCollection.Any()) {
+            return false;
+        }
+
+        foreach (Node2D node in removalCollection) {
+            // if the parent node is null, that means we're trying to delete the root
+            if (node.Parent is not null) {
+                node.Parent.Children.Remove(node);
+            }
+        }
+        return true;
+    }
+
     #endregion wrangling
 
     #region drawing
@@ -66,7 +92,7 @@ class NodeCollection {
         }
     }
     public void DrawDebugNodes() {
-        foreach(Node2D node in Root.AllNodes()) {
+        foreach (Node2D node in Root.AllNodes()) {
             DrawCircle(new(0, 1, 0), node.RelativeOffset(), 4);
         }
     }

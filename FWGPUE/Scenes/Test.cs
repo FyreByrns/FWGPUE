@@ -44,24 +44,8 @@ class Test : Scene {
     public override void Render() {
         base.Render();
 
-        //SpriteBatcher!.DrawSprite(new(100 + (float)Math.Sin(TotalTimeInScene) * 100, 100), 0, Atlas, "square");
-        //SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
-        //    Texture = "square",
-        //    Transform = {
-        //        Scale = new(10, 10, 1),
-        //        Position = new(100, 100, 1)
-        //    }
-        //});
-        //SpriteBatcher!.DrawSprite(new Graphics.Sprite(Atlas!) {
-        //    Texture = "otherSquare",
-        //    Transform = {
-        //        Scale = new(10, 10, 1),
-        //        Position = new(100, 100, 0),
-        //        Rotation = new(0, TotalTimeInScene / 20f, 0.2f)
-        //    }
-        //});
-
         DrawCircle(new Vector3(1, 1, 1), MousePosition(), 4);
+        DrawCircle(new Vector3(1, 0, 0), new(100, 100), 10);
 
         Nodes.DrawNodes();
         Nodes.DrawDebugNodes();
