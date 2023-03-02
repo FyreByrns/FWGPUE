@@ -17,6 +17,9 @@ namespace FWGPUE {
         public static float TurnsToRadians(float turns) {
             return turns * MathF.PI * 2f;
         }
+        public static float RadiansToTurns(float radians) {
+            return radians / MathF.PI / 2f;
+        }
 
         public static int NearestPowerOfTwo(int input) {
             return NearestPowerOf(2, input);
