@@ -47,7 +47,6 @@ class Test : Scene {
         DrawCircle(new Vector3(1, 1, 1), MousePosition(), 4);
         DrawCircle(new Vector3(1, 0, 0), new(100, 100), 10);
 
-        Nodes.DrawNodes();
         Nodes.DrawDebugNodes();
         Nodes.DrawDebugConnections();
     }

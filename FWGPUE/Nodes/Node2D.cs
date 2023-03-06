@@ -92,11 +92,24 @@ class Node2D {
 class SpriteNode : Node2D {
     public string? Sprite { get; set; }
     public float Z { get; set; } = 0;
+
     public float Scale { get; set; } = 1;
+    /// <summary>
+    /// How much of the width of the screen the width of this sprite should take up.
+    /// </summary>
+    public float TargetWidthPercentage { get; set; } = 0;
 
     public override void Draw() {
         base.Draw();
+
+        // if this sprite should be scaled to screen
+        if (TargetWidthPercentage > 0) {
+            // scale to screen
+            if (CurrentScene!.Assets!.GetAsset(Sprite!, out Asset sprite)) {
+                Scale = (Window!.Size.X / (float)sprite.Width * TargetWidthPercentage);
+            }
+        }
+
         DrawImage(Sprite ?? "", RelativeOffset(), Z, Scale, RelativeRotation());
     }
-
 }

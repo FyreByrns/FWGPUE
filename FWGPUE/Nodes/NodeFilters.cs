@@ -12,10 +12,6 @@ static class NodeFilters {
         return n.Name == (string)d;
     }
 
-    public static bool HasParent(Node2D n, object d) {
-        return n.Parent == (Node2D)d;
-    }
-
     /// <summary>
     /// Whether the node is visible.
     /// <para>This requires this node to be visible and all parents to be visible.</para>

@@ -1,9 +1,14 @@
-﻿namespace FWGPUE.IO;
+﻿using FWGPUE.Graphics;
+
+namespace FWGPUE.IO;
 
 class Asset {
     public FileType Type { get; }
     public string Name { get; }
     public EngineFileLocation Location { get; }
+
+    public int Width { get; set; }
+    public int Height { get; set; }
 
     public Asset(FileType type, string name, EngineFileLocation location) {
         Type = type;
@@ -25,6 +30,36 @@ class AssetManifestFile : DataMarkupFile {
     /// The subset of <see cref="Assets"/> which are images.
     /// </summary>
     public List<Asset> ImageAssets { get; } = new();
+
+    public bool GetAsset(string name, out Asset asset) {
+        foreach(Asset a in Assets) {
+            if (a.Name == name) {
+                asset = a;
+                return true;
+            }
+        }
+
+        Log.Error($"no such asset {name}");
+        asset = null;
+        return false;
+    }
+
+    public T LoadAsset<T>(string name) {
+        return (T)LoadAsset(name);
+    }
+    public object LoadAsset(string name) {
+        if(GetAsset(name, out Asset result)) {
+            if (result.Type == FileType.Image) {
+                Texture resultTexture = new Texture(new ByteFile(result.Location));
+                result.Width = resultTexture.Width;
+                result.Height = resultTexture.Height;
+                return resultTexture;
+            }
+        }
+
+        Log.Error($"could not load {name}");
+        return null;
+    }
 
     /// <summary>
     /// Load all assets defined in the manifest, replacing items in the path with other items.

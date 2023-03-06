@@ -87,8 +87,7 @@ abstract class Scene {
         PackingRectangle[] packingRectangles = new PackingRectangle[Assets.ImageAssets.Count];
         Texture[] loadedTextures = new Texture[Assets.ImageAssets.Count];
         for (int i = 0; i < Assets.ImageAssets.Count; i++) {
-            EngineFileLocation imageLocation = Assets.ImageAssets[i].Location;
-            loadedTextures[i] = new(new ByteFile(imageLocation));
+            loadedTextures[i] = Assets.LoadAsset<Texture>(Assets.ImageAssets[i].Name);
 
             packingRectangles[i].Id = i;
             packingRectangles[i].Width = (uint)(loadedTextures[i].Width + AtlasPackingPadding);
@@ -126,9 +125,11 @@ abstract class Scene {
 
     public virtual void Tick() {
         TotalTimeInScene += TickTime;
+        Nodes.TickNodes();
     }
 
     public virtual void Render() {
+        Nodes.DrawNodes();
         DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
     }
 }
