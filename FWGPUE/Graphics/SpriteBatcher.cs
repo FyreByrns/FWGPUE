@@ -28,7 +28,6 @@ class SpriteBatcher {
     uint uvVBO;
 
     public Dictionary<SpriteAtlasFile, List<Sprite>> SpritesByAtlas { get; } = new();
-    public HashSet<short> RegisteredSpriteIDs { get; } = new(); // to track which sprites are already being drawn
 
     public Shader Shader { get; set; }
 
@@ -50,10 +49,7 @@ class SpriteBatcher {
             SpritesByAtlas[sprite.Atlas!] = new List<Sprite>();
         }
 
-        if (!RegisteredSpriteIDs.Contains(sprite.ID)) {
-            SpritesByAtlas[sprite.Atlas!].Add(sprite);
-            RegisteredSpriteIDs.Add(sprite.ID);
-        }
+        SpritesByAtlas[sprite.Atlas!].Add(sprite);
 
         return sprite.ID;
     }
@@ -117,7 +113,6 @@ class SpriteBatcher {
 
     public void Clear() {
         SpritesByAtlas.Clear();
-        RegisteredSpriteIDs.Clear();
     }
 
     public SpriteBatcher() {
