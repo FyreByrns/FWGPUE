@@ -10,6 +10,8 @@ class OrthoCamera2D : ICamera {
     public Vector3 Right => Vector3.Normalize(Vector3.Cross(Vector3.UnitY, Direction));
     public Vector3 Up => Vector3.Cross(Direction, Right);
 
+    public Vector2 Center => ScreenToWorld((Vector2)Window!.Size / 2);
+
     #region camera interface requirements
 
     public Vector2 WorldToScreen(Vector2 worldSpace) {

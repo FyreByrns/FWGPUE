@@ -22,10 +22,24 @@ class Test : Scene {
         }).AddChild(new SpriteNode() {
             Offset = new(50, 10),
             Sprite = "otherSquare"
-        }).AddChild(new SpriteNode() { 
+        }).AddChild(new SpriteNode() {
             Offset = new(60, 0),
             Sprite = "square"
         });
+
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                for (int i = 0; i < 10; i++) {
+                    Nodes.AddChild(new ParallaxSpriteNode() {
+                        Offset = new(x * 50, y * 50),
+                        Scale = 2,
+                        //TargetWidthPercentage = 0.06f,
+                        Z = i,
+                        Sprite = "square"
+                    }, NodeFilters.ChildOf(Nodes.Root));
+                }
+            }
+        }
     }
 
     public override void Tick() {
@@ -47,7 +61,7 @@ class Test : Scene {
         DrawCircle(new Vector3(1, 1, 1), MousePosition(), 4);
         DrawCircle(new Vector3(1, 0, 0), new(100, 100), 10);
 
-        Nodes.DrawDebugNodes();
+        //Nodes.DrawDebugNodes();
         Nodes.DrawDebugConnections();
     }
 

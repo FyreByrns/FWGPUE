@@ -113,3 +113,23 @@ class SpriteNode : Node2D {
         DrawImage(Sprite ?? "", RelativeOffset(), Z, Scale, RelativeRotation());
     }
 }
+
+class ParallaxSpriteNode : SpriteNode {
+    public const float OffsetPerZ = 60f;
+    public const float ScalePerZ = 30f;
+
+    public override void Draw() {
+        Vector2 oldOffset = Offset;
+        float oldScale = Scale;
+
+        Vector2 dist = Camera!.Center - RelativeOffset();
+        float distanceFromCameraCenter = dist.Length();
+
+        Offset -= ((dist / dist.Length()) * distanceFromCameraCenter * (float)Z / OffsetPerZ);
+        Scale += (float)Z / ScalePerZ;
+
+        base.Draw();
+        Offset = oldOffset;
+        Scale = oldScale;
+    }
+}
