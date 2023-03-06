@@ -1,4 +1,5 @@
 ﻿using FWGPUE.Graphics;
+using Silk.NET.Vulkan;
 
 namespace FWGPUE.IO;
 
@@ -49,15 +50,20 @@ class AssetManifestFile : DataMarkupFile {
     }
     public object LoadAsset(string name) {
         if(GetAsset(name, out Asset result)) {
-            if (result.Type == FileType.Image) {
-                Texture resultTexture = new Texture(new ByteFile(result.Location));
-                result.Width = resultTexture.Width;
-                result.Height = resultTexture.Height;
-                return resultTexture;
-            }
+            return LoadAsset(result);
         }
 
         Log.Error($"could not load {name}");
+        return null;
+    }
+    public object LoadAsset(Asset asset) {
+        if (asset.Type == FileType.Image) {
+            Texture resultTexture = new Texture(new ByteFile(asset.Location));
+            asset.Width = resultTexture.Width;
+            asset.Height = resultTexture.Height;
+            return resultTexture;
+        }
+
         return null;
     }
 
@@ -95,6 +101,10 @@ class AssetManifestFile : DataMarkupFile {
         }
         else {
             Log.Warn($"no assets declared in asset file {Location?.Name ?? "unlocated"}");
+        }
+
+        foreach(Asset asset in Assets) {
+            LoadAsset(asset);
         }
     }
 
