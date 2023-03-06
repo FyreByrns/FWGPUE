@@ -1,5 +1,4 @@
 ﻿using FWGPUE.Graphics;
-using Silk.NET.Vulkan;
 
 namespace FWGPUE.IO;
 
