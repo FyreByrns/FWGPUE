@@ -18,8 +18,6 @@ abstract class Scene {
     public DataMarkupFile? Globals { get; protected set; }
     public AssetManifestFile? Assets { get; protected set; }
 
-    public SpriteAtlasFile? Atlas { get; protected set; }
-
     public NodeCollection Nodes { get; } = new();
 
     public T? GetGlobal<T>(string globalName) {
@@ -80,6 +78,7 @@ abstract class Scene {
 
         Log.Info($"number of images: {imagesToAddToAtlas.Count}");
 
+        /*
         // add all images in the asset list to an atlas
         Atlas = new();
 
@@ -118,6 +117,7 @@ abstract class Scene {
             // don't eat all vram
             texture.Dispose();
         }
+        */
     }
 
     public abstract void Load();
@@ -130,6 +130,6 @@ abstract class Scene {
 
     public virtual void Render() {
         Nodes.DrawNodes();
-        DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
+        //DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
     }
 }

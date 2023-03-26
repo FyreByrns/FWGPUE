@@ -45,14 +45,9 @@ class Test : Scene {
     public override void Tick() {
         base.Tick();
 
-        MouseFollowNode.Offset = Camera.ScreenToWorld(MousePosition());
         MouseFollowNode.Rotation = TotalTimeInScene / 10f;
         MouseFollowNode.Children.First().Rotation = TotalTimeInScene / 5f;
 
-        if (KeyDown(Key.Up)) { Camera!.Position.ChangeBy(new(0, -50 * TickTime, 0)); }
-        if (KeyDown(Key.Down)) { Camera!.Position.ChangeBy(new(0, 50 * TickTime, 0)); }
-        if (KeyDown(Key.Left)) { Camera!.Position.ChangeBy(new(-50 * TickTime, 0, 0)); }
-        if (KeyDown(Key.Right)) { Camera!.Position.ChangeBy(new(50 * TickTime, 0, 0)); }
     }
 
     public override void Render() {

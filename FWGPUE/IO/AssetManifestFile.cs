@@ -56,12 +56,12 @@ class AssetManifestFile : DataMarkupFile {
         return null;
     }
     public object LoadAsset(Asset asset) {
-        if (asset.Type == FileType.Image) {
-            Texture resultTexture = new Texture(new ByteFile(asset.Location));
-            asset.Width = resultTexture.Width;
-            asset.Height = resultTexture.Height;
-            return resultTexture;
-        }
+        //if (asset.Type == FileType.Image) {
+        //    Texture resultTexture = new Texture(new ByteFile(asset.Location));
+        //    asset.Width = resultTexture.Width;
+        //    asset.Height = resultTexture.Height;
+        //    return resultTexture;
+        //}
 
         return null;
     }
