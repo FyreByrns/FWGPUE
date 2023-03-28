@@ -1,13 +1,311 @@
 ﻿using Silk.NET.Windowing;
 using Silk.NET.Maths;
-using Silk.NET.OpenGL;
 using FWGPUE.IO;
 using System.Numerics;
 
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+using Silk.NET.Direct3D.Compilers;
+
 using FWGPUE.Graphics;
 using FWGPUE.Scenes;
+using Silk.NET.SDL;
+using Silk.NET.Core.Native;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace FWGPUE;
+
+class D3D11Renderer {
+    #region
+#if DEBUG
+    public bool LogInfo { get; } = true;
+#else
+    public bool LogInfo { get; }= false;
+#endif
+    #endregion
+
+    float[] vertices =
+{
+    //X    Y      Z
+    0.5f,  0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+    -0.5f,  0.5f, 0.5f
+};
+
+    uint[] indices =
+    {
+    0, 1, 3,
+    1, 2, 3
+};
+
+    uint vertexStride = 3U * sizeof(float);
+    uint vertexOffset = 0U;
+
+    const string shaderSource = @"
+struct vs_in {
+    float3 position_local : POS;
+};
+struct vs_out {
+    float4 position_clip : SV_POSITION;
+};
+vs_out vs_main(vs_in input) {
+    vs_out output = (vs_out)0;
+    output.position_clip = float4(input.position_local, 1.0);
+    return output;
+}
+float4 ps_main(vs_out input) : SV_TARGET {
+    return float4( 1.0, 0.5, 0.2, 1.0 );
+}
+";
+
+    float[] backgroundColour = new[] { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    public static D3D11Renderer Instance { get; private set; }
+
+    public IWindow Window { get; private set; }
+
+    public DXGI dxgi = DXGI.GetApi();
+    public D3D11 d3d11 = D3D11.GetApi();
+    public D3DCompiler compiler = D3DCompiler.GetApi();
+
+    ComPtr<IDXGIFactory2> factory = default;
+    ComPtr<IDXGISwapChain1> swapchain = default;
+    ComPtr<ID3D11Device> device = default;
+    ComPtr<ID3D11DeviceContext> deviceContext = default;
+    ComPtr<ID3D11Buffer> vertexBuffer = default;
+    ComPtr<ID3D11Buffer> indexBuffer = default;
+    ComPtr<ID3D11VertexShader> vertexShader = default;
+    ComPtr<ID3D11PixelShader> pixelShader = default;
+    ComPtr<ID3D11InputLayout> inputLayout = default;
+
+    public void Setup() {
+        CreateDevice();
+        CreateSwapchain();
+
+        #region buffers
+        BufferDesc bufferDescription = new() {
+            ByteWidth = (uint)(vertices.Length * sizeof(float)),
+            Usage = Usage.Default,
+            BindFlags = (uint)BindFlag.VertexBuffer
+        };
+        unsafe {
+            fixed (float* vertexData = vertices) {
+                SubresourceData subData = new() {
+                    PSysMem = vertexData
+                };
+                SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDescription, in subData, ref vertexBuffer));
+            }
+        }
+
+        bufferDescription = new() {
+            ByteWidth = (uint)(indices.Length * sizeof(uint)),
+            Usage = Usage.Default,
+            BindFlags = (uint)BindFlag.IndexBuffer
+        };
+        unsafe {
+            fixed (uint* indexData = indices) {
+                SubresourceData subData = new() {
+                    PSysMem = indexData
+                };
+                SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDescription, in subData, ref indexBuffer));
+            }
+        }
+        #endregion buffers
+        #region shader 
+        byte[] shaderBytes = Encoding.ASCII.GetBytes(shaderSource);
+
+        // vertex shader
+        ComPtr<ID3D10Blob> vertexCode = default;
+        ComPtr<ID3D10Blob> vertexErrors = default;
+        unsafe {
+            HResult result = compiler.Compile(
+                in shaderBytes[0],
+                (nuint)shaderBytes.Length,
+                nameof(shaderSource),
+                null,
+                ref Unsafe.NullRef<ID3DInclude>(),
+                "vs_main",
+                "vs_5_0",
+                0,
+                0,
+                ref vertexCode,
+                ref vertexErrors
+            );
+            if (result.IsFailure) {
+                if (vertexErrors.Handle is not null) {
+                    Log.Error(SilkMarshal.PtrToString((nint)vertexErrors.GetBufferPointer(), NativeStringEncoding.LPWStr) ?? "null message");
+                }
+            }
+        }
+
+        // pixel shader
+        ComPtr<ID3D10Blob> pixelCode = default;
+        ComPtr<ID3D10Blob> pixelErrors = default;
+        unsafe {
+            HResult result = compiler.Compile(
+                in shaderBytes[0],
+                (nuint)shaderBytes.Length,
+                nameof(shaderSource),
+                null,
+                ref Unsafe.NullRef<ID3DInclude>(),
+                "ps_main",
+                "ps_5_0",
+                0,
+                0,
+                ref pixelCode,
+                ref pixelErrors
+            );
+            if (result.IsFailure) {
+                if (pixelErrors.Handle is not null) {
+                    Log.Error(SilkMarshal.PtrToString((nint)pixelErrors.GetBufferPointer(), NativeStringEncoding.LPWStr) ?? "null message");
+                }
+            }
+        }
+
+        // create shaders
+        unsafe {
+            SilkMarshal.ThrowHResult(device.CreateVertexShader(
+                vertexCode.GetBufferPointer(),
+                vertexCode.GetBufferSize(),
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref vertexShader
+            ));
+            SilkMarshal.ThrowHResult(device.CreatePixelShader(
+                pixelCode.GetBufferPointer(),
+                pixelCode.GetBufferSize(),
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref pixelShader
+            ));
+        }
+
+        // describe shader input data layout
+        unsafe {
+            fixed (byte* name = SilkMarshal.StringToMemory("POS")) {
+                InputElementDesc inputElement = new() {
+                    SemanticName = name,
+                    SemanticIndex = 0,
+                    Format = Format.FormatR32G32B32Float,
+                    InputSlot = 0,
+                    AlignedByteOffset = 0,
+                    InputSlotClass = InputClassification.PerVertexData,
+                    InstanceDataStepRate = 0
+                };
+                SilkMarshal.ThrowHResult(device.CreateInputLayout(
+                    in inputElement,
+                    1,
+                    vertexCode.GetBufferPointer(),
+                    vertexCode.GetBufferSize(),
+                    ref inputLayout
+                ));
+            }
+        }
+        #endregion shader
+
+        vertexCode.Dispose();
+        vertexErrors.Dispose();
+        pixelCode.Dispose();
+        pixelErrors.Dispose();
+    }
+    void CreateDevice() {
+        unsafe {
+            SilkMarshal.ThrowHResult(d3d11.CreateDevice(
+                default(ComPtr<IDXGIAdapter>),
+                D3DDriverType.Hardware,
+                Software: default,
+                (uint)CreateDeviceFlag.Debug,
+                null,
+                0,
+                D3D11.SdkVersion,
+                ref device,
+                null,
+                ref deviceContext
+            ));
+
+            if (LogInfo) {
+                device.SetInfoQueueCallback(msg => Log.Info(SilkMarshal.PtrToString((nint)msg.PDescription) ?? "null message", true, "D3D Device", "", 0));
+            }
+        }
+    }
+    void CreateSwapchain() {
+        // describe swapchain
+        SwapChainDesc1 swapChainDescription = new() {
+            BufferCount = 2, // double-buffered
+            Format = Format.FormatR8G8B8A8Unorm,
+            BufferUsage = DXGI.UsageRenderTargetOutput,
+            SwapEffect = SwapEffect.FlipDiscard,
+            SampleDesc = new SampleDesc(1, 0)
+        };
+
+        // create factory to create the swapchain
+        factory = dxgi.CreateDXGIFactory<IDXGIFactory2>();
+
+        // create swapchain
+        unsafe {
+            SilkMarshal.ThrowHResult(factory.CreateSwapChainForHwnd(
+                device,
+                Window.Native!.DXHandle!.Value,
+                in swapChainDescription,
+                null,
+                ref Unsafe.NullRef<IDXGIOutput>(),
+                ref swapchain
+            ));
+        }
+    }
+
+    public void FramebufferResize(Vector2D<int> newSize) {
+        SilkMarshal.ThrowHResult(swapchain.ResizeBuffers(0, (uint)newSize.X, (uint)newSize.Y, Format.FormatR8G8B8A8Unorm, 0));
+    }
+
+    public void Render() {
+        unsafe {
+            // Obtain the framebuffer for the swapchain's backbuffer.
+            using var framebuffer = swapchain.GetBuffer<ID3D11Texture2D>(0);
+
+            // Create a view over the render target.
+            ComPtr<ID3D11RenderTargetView> renderTargetView = default;
+            SilkMarshal.ThrowHResult(device.CreateRenderTargetView(framebuffer, null, ref renderTargetView));
+
+            // Clear the render target to be all black ahead of rendering.
+            deviceContext.ClearRenderTargetView(renderTargetView, ref backgroundColour[0]);
+
+            // Update the rasterizer state with the current viewport.
+            var viewport = new Viewport(0, 0, Window.FramebufferSize.X, Window.FramebufferSize.Y, 0, 1);
+            deviceContext.RSSetViewports(1, in viewport);
+
+            // Tell the output merger about our render target view.
+            deviceContext.OMSetRenderTargets(1, ref renderTargetView, ref Unsafe.NullRef<ID3D11DepthStencilView>());
+
+            // Update the input assembler to use our shader input layout, and associated vertex & index buffers.
+            deviceContext.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
+            deviceContext.IASetInputLayout(inputLayout);
+            deviceContext.IASetVertexBuffers(0, 1, vertexBuffer, in vertexStride, in vertexOffset);
+            deviceContext.IASetIndexBuffer(indexBuffer, Format.FormatR32Uint, 0);
+
+            // Bind our shaders.
+            deviceContext.VSSetShader(vertexShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+            deviceContext.PSSetShader(pixelShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+
+            // Draw the quad.
+            deviceContext.DrawIndexed(6, 0, 0);
+
+            // Present the drawn image.
+            swapchain.Present(1, 0);
+
+            // Clean up any resources created in this method.
+            renderTargetView.Dispose();
+        }
+    }
+
+    public D3D11Renderer(IWindow window) {
+        Instance = this;
+
+        Window = window;
+
+        Setup();
+    }
+}
 
 static class Engine {
     #region timing
@@ -34,9 +332,10 @@ static class Engine {
 
     #region rendering
 
+    public static D3D11Renderer Renderer { get; private set; }
+
     public static BaseCamera Camera;
 
-    public static GL? Gl { get; private set; }
     public static IWindow? Window { get; private set; }
 
     public enum TextAlignment {
@@ -132,11 +431,15 @@ static class Engine {
         ChangeToScene(new StartupSplash());
     }
 
+    static void FramebufferResize(Vector2D<int> obj) {
+        D3D11Renderer.Instance.FramebufferResize(obj);
+    }
+
     static void InitWindow() {
         WindowOptions options = WindowOptions.Default with {
             Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
             Title = "FWGPUE",
-            Samples = 8,
+            API = GraphicsAPI.None,
         };
 
         Window = Silk.NET.Windowing.Window.Create(options);
@@ -145,17 +448,12 @@ static class Engine {
         Window.Render += Render;
         Window.Closing += Closing;
 
-        Window.FramebufferResize += newSize => Gl!.Viewport(newSize);
+        Window.FramebufferResize += FramebufferResize;
 
         Window.Initialize();
     }
 
     static void InitGraphics() {
-        Gl = GL.GetApi(Window);
-        Gl.Enable(GLEnum.Multisample);
-        Gl.Enable(GLEnum.Blend);
-        Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
-        Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
     }
 
@@ -175,7 +473,10 @@ static class Engine {
         ShutdownComplete = true;
     }
 
-    static void Load() { }
+    static void Load() {
+        Renderer = new D3D11Renderer(Window!);
+        Renderer.Setup();
+    }
 
     #endregion engine meta-state
 
@@ -214,7 +515,6 @@ static class Engine {
         // update ImGui
 
         // clear backbuffer
-        Gl!.Clear((uint)ClearBufferMask.ColorBufferBit);
 
         // render the current frame
         CurrentScene?.Render();
