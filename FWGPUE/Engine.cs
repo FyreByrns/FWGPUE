@@ -302,8 +302,6 @@ float4 ps_main(vs_out input) : SV_TARGET {
         Instance = this;
 
         Window = window;
-
-        Setup();
     }
 }
 
