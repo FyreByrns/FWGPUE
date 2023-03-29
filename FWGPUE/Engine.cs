@@ -9,12 +9,100 @@ using Silk.NET.Direct3D.Compilers;
 
 using FWGPUE.Graphics;
 using FWGPUE.Scenes;
-using Silk.NET.SDL;
 using Silk.NET.Core.Native;
-using System.Runtime.CompilerServices;
 using System.Text;
+using Silk.NET.OpenAL;
 
 namespace FWGPUE;
+
+#region ease-of-use d3d aliases
+
+using Factory = ComPtr<IDXGIFactory2>;
+using Swapchain = ComPtr<IDXGISwapChain1>;
+using Device = ComPtr<ID3D11Device>;
+using DeviceContext = ComPtr<ID3D11DeviceContext>;
+using Buffer = ComPtr<ID3D11Buffer>;
+using VertexShader = ComPtr<ID3D11VertexShader>;
+using PixelShader = ComPtr<ID3D11PixelShader>;
+using InputLayout = ComPtr<ID3D11InputLayout>;
+using DXGIAdapter = ComPtr<IDXGIAdapter>;
+using RenderTargetView = ComPtr<ID3D11RenderTargetView>;
+using ClassInstance = ComPtr<ID3D11ClassInstance>;
+using Blob = ComPtr<ID3D10Blob>;
+
+#endregion
+
+class Buffer<T>
+    where T : unmanaged {
+
+    public Device Device { get; private set; }
+    public Buffer D3DBuffer = default;
+    public BufferDesc Description;
+    public Usage Usage { get; set; } = Usage.Default;
+
+    BindFlag _bindFlag;
+    public BindFlag BindFlag {
+        get => _bindFlag;
+        set {
+            _bindFlag = value; OnDataChanged();
+        }
+    }
+
+    T[] _data;
+    public T[] Data {
+        get => _data;
+        set {
+            _data = value;
+            OnDataChanged();
+        }
+    }
+
+    public int Length => Data.Length;
+    public unsafe int ByteSize => sizeof(T) * Data.Length;
+
+    void OnDataChanged() {
+        // update description
+        Description = new() {
+            ByteWidth = (uint)ByteSize,
+            Usage = Usage,
+            BindFlags = (uint)BindFlag
+        };
+
+        // update buffer in device
+        unsafe {
+            fixed (T* data = _data) {
+                SubresourceData subData = new() {
+                    PSysMem = data
+                };
+                SilkMarshal.ThrowHResult(Device.CreateBuffer(in Description, in subData, ref D3DBuffer));
+            }
+        }
+    }
+
+    private Buffer(Device device) { this.Device = device; }
+    public Buffer(Device device, int initialSize)
+        : this(device) {
+        Data = new T[initialSize];
+    }
+    public Buffer(Device device, T[] data)
+        : this(device) {
+        Data = data;
+    }
+    public Buffer(Device device, T[] data, BindFlag bindFlags) : this(device, data) {
+        BindFlag = bindFlags;
+    }
+}
+class VertexBuffer<T>
+    : Buffer<T>
+    where T : unmanaged {
+    public uint ByteStride;
+    public uint Offset;
+
+    public VertexBuffer(Device device, T[] data, uint stride, uint offset) : base(device, data, BindFlag.VertexBuffer) {
+        unsafe { ByteStride = (uint)(stride * sizeof(T)); }
+        Offset = offset;
+    }
+}
 
 class D3D11Renderer {
     #region
@@ -23,6 +111,11 @@ class D3D11Renderer {
 #else
     public bool LogInfo { get; }= false;
 #endif
+    #endregion
+    #region helper 
+    ref T nullref<T>() {
+        return ref System.Runtime.CompilerServices.Unsafe.NullRef<T>();
+    }
     #endregion
 
     float[] vertices =
@@ -39,9 +132,6 @@ class D3D11Renderer {
     0, 1, 3,
     1, 2, 3
 };
-
-    uint vertexStride = 3U * sizeof(float);
-    uint vertexOffset = 0U;
 
     const string shaderSource = @"
 struct vs_in {
@@ -70,62 +160,38 @@ float4 ps_main(vs_out input) : SV_TARGET {
     public D3D11 d3d11 = D3D11.GetApi();
     public D3DCompiler compiler = D3DCompiler.GetApi();
 
-    ComPtr<IDXGIFactory2> factory = default;
-    ComPtr<IDXGISwapChain1> swapchain = default;
-    ComPtr<ID3D11Device> device = default;
-    ComPtr<ID3D11DeviceContext> deviceContext = default;
-    ComPtr<ID3D11Buffer> vertexBuffer = default;
-    ComPtr<ID3D11Buffer> indexBuffer = default;
-    ComPtr<ID3D11VertexShader> vertexShader = default;
-    ComPtr<ID3D11PixelShader> pixelShader = default;
-    ComPtr<ID3D11InputLayout> inputLayout = default;
+    Factory factory = default;
+    Swapchain swapchain = default;
+    Device device = default;
+    DeviceContext deviceContext = default;
+    VertexBuffer<float> vertexBuffer;
+    Buffer<uint> indexBuffer;
+    //Buffer vertexBuffer = default;
+    //Buffer indexBuffer = default;
+    VertexShader vertexShader = default;
+    PixelShader pixelShader = default;
+    InputLayout inputLayout = default;
 
     public void Setup() {
         CreateDevice();
         CreateSwapchain();
 
-        #region buffers
-        BufferDesc bufferDescription = new() {
-            ByteWidth = (uint)(vertices.Length * sizeof(float)),
-            Usage = Usage.Default,
-            BindFlags = (uint)BindFlag.VertexBuffer
-        };
-        unsafe {
-            fixed (float* vertexData = vertices) {
-                SubresourceData subData = new() {
-                    PSysMem = vertexData
-                };
-                SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDescription, in subData, ref vertexBuffer));
-            }
-        }
+        vertexBuffer = new(device, vertices, 3, 0);
+        indexBuffer = new(device, indices, BindFlag.IndexBuffer);
 
-        bufferDescription = new() {
-            ByteWidth = (uint)(indices.Length * sizeof(uint)),
-            Usage = Usage.Default,
-            BindFlags = (uint)BindFlag.IndexBuffer
-        };
-        unsafe {
-            fixed (uint* indexData = indices) {
-                SubresourceData subData = new() {
-                    PSysMem = indexData
-                };
-                SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDescription, in subData, ref indexBuffer));
-            }
-        }
-        #endregion buffers
         #region shader 
         byte[] shaderBytes = Encoding.ASCII.GetBytes(shaderSource);
 
         // vertex shader
-        ComPtr<ID3D10Blob> vertexCode = default;
-        ComPtr<ID3D10Blob> vertexErrors = default;
+        Blob vertexCode = default;
+        Blob vertexErrors = default;
         unsafe {
             HResult result = compiler.Compile(
                 in shaderBytes[0],
                 (nuint)shaderBytes.Length,
                 nameof(shaderSource),
                 null,
-                ref Unsafe.NullRef<ID3DInclude>(),
+                ref nullref<ID3DInclude>(),
                 "vs_main",
                 "vs_5_0",
                 0,
@@ -141,15 +207,15 @@ float4 ps_main(vs_out input) : SV_TARGET {
         }
 
         // pixel shader
-        ComPtr<ID3D10Blob> pixelCode = default;
-        ComPtr<ID3D10Blob> pixelErrors = default;
+        Blob pixelCode = default;
+        Blob pixelErrors = default;
         unsafe {
             HResult result = compiler.Compile(
                 in shaderBytes[0],
                 (nuint)shaderBytes.Length,
                 nameof(shaderSource),
                 null,
-                ref Unsafe.NullRef<ID3DInclude>(),
+                ref nullref<ID3DInclude>(),
                 "ps_main",
                 "ps_5_0",
                 0,
@@ -169,13 +235,13 @@ float4 ps_main(vs_out input) : SV_TARGET {
             SilkMarshal.ThrowHResult(device.CreateVertexShader(
                 vertexCode.GetBufferPointer(),
                 vertexCode.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref nullref<ID3D11ClassLinkage>(),
                 ref vertexShader
             ));
             SilkMarshal.ThrowHResult(device.CreatePixelShader(
                 pixelCode.GetBufferPointer(),
                 pixelCode.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref nullref<ID3D11ClassLinkage>(),
                 ref pixelShader
             ));
         }
@@ -211,7 +277,7 @@ float4 ps_main(vs_out input) : SV_TARGET {
     void CreateDevice() {
         unsafe {
             SilkMarshal.ThrowHResult(d3d11.CreateDevice(
-                default(ComPtr<IDXGIAdapter>),
+                default(DXGIAdapter),
                 D3DDriverType.Hardware,
                 Software: default,
                 (uint)CreateDeviceFlag.Debug,
@@ -248,7 +314,7 @@ float4 ps_main(vs_out input) : SV_TARGET {
                 Window.Native!.DXHandle!.Value,
                 in swapChainDescription,
                 null,
-                ref Unsafe.NullRef<IDXGIOutput>(),
+                ref nullref<IDXGIOutput>(),
                 ref swapchain
             ));
         }
@@ -264,7 +330,7 @@ float4 ps_main(vs_out input) : SV_TARGET {
             using var framebuffer = swapchain.GetBuffer<ID3D11Texture2D>(0);
 
             // Create a view over the render target.
-            ComPtr<ID3D11RenderTargetView> renderTargetView = default;
+            RenderTargetView renderTargetView = default;
             SilkMarshal.ThrowHResult(device.CreateRenderTargetView(framebuffer, null, ref renderTargetView));
 
             // Clear the render target to be all black ahead of rendering.
@@ -275,17 +341,17 @@ float4 ps_main(vs_out input) : SV_TARGET {
             deviceContext.RSSetViewports(1, in viewport);
 
             // Tell the output merger about our render target view.
-            deviceContext.OMSetRenderTargets(1, ref renderTargetView, ref Unsafe.NullRef<ID3D11DepthStencilView>());
+            deviceContext.OMSetRenderTargets(1, ref renderTargetView, ref nullref<ID3D11DepthStencilView>());
 
             // Update the input assembler to use our shader input layout, and associated vertex & index buffers.
             deviceContext.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
             deviceContext.IASetInputLayout(inputLayout);
-            deviceContext.IASetVertexBuffers(0, 1, vertexBuffer, in vertexStride, in vertexOffset);
-            deviceContext.IASetIndexBuffer(indexBuffer, Format.FormatR32Uint, 0);
+            deviceContext.IASetVertexBuffers(0, 1, vertexBuffer.D3DBuffer, in vertexBuffer.ByteStride, in vertexBuffer.Offset);
+            deviceContext.IASetIndexBuffer(indexBuffer.D3DBuffer, Format.FormatR32Uint, 0);
 
             // Bind our shaders.
-            deviceContext.VSSetShader(vertexShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
-            deviceContext.PSSetShader(pixelShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
+            deviceContext.VSSetShader(vertexShader, ref nullref<ClassInstance>(), 0);
+            deviceContext.PSSetShader(pixelShader, ref nullref<ClassInstance>(), 0);
 
             // Draw the quad.
             deviceContext.DrawIndexed(6, 0, 0);
@@ -510,13 +576,10 @@ static class Engine {
     }
 
     private static void Render(double elapsed) {
-        // update ImGui
-
-        // clear backbuffer
-
         // render the current frame
         CurrentScene?.Render();
 
+        Renderer.Render();
         // draw all batched sprites
 
         // draw all batched fonts
