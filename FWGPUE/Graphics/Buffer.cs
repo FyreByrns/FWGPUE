@@ -38,6 +38,13 @@ class Buffer<T>
             OnDataChanged();
         }
     }
+    public T this[int index] {
+        get => _data[index];
+        set {
+            _data[index] = value;
+            OnDataChanged();
+        }
+    }
 
     public int Length => Data.Length;
     public unsafe int ByteSize => sizeof(T) * Data.Length;
