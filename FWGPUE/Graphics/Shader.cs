@@ -47,6 +47,7 @@ class Shader : ByteFile {
             );
             if (result.IsFailure) {
                 if (vertexErrors.Handle is not null) {
+                    Log.Error("error compiling shader:");
                     Log.Error(SilkMarshal.PtrToString((nint)vertexErrors.GetBufferPointer(), NativeStringEncoding.LPWStr) ?? "null message");
                 }
             }
@@ -99,10 +100,14 @@ class Shader : ByteFile {
                 ref pixelShader
             ));
 
+            InputElementDesc[] descriptions = new InputElementDesc[5];
             // describe layout
-            fixed (byte* name = SilkMarshal.StringToMemory("POS")) {
-                InputElementDesc inputElement = new() {
-                    SemanticName = name,
+            fixed (byte* 
+                pos = SilkMarshal.StringToMemory("POS"),
+                transform = SilkMarshal.StringToMemory("TRANSFORM")) {
+                
+                descriptions[0] = new() {
+                    SemanticName = pos,
                     SemanticIndex = 0,
                     Format = Format.FormatR32G32B32Float,
                     InputSlot = 0,
@@ -111,13 +116,61 @@ class Shader : ByteFile {
                     InstanceDataStepRate = 0
                 };
 
-                SilkMarshal.ThrowHResult(device.CreateInputLayout(
-                    in inputElement,
-                    1,
+                descriptions[1] = new() {
+                    SemanticName = transform,
+                    SemanticIndex = 0,
+                    Format = Format.FormatR32G32B32A32Float,
+                    InputSlot = 1,
+                    AlignedByteOffset = 0,
+                    InputSlotClass = InputClassification.PerInstanceData,
+                    InstanceDataStepRate = 0
+                };
+                descriptions[2] = new() {
+                    SemanticName = transform,
+                    SemanticIndex = 1,
+                    Format = Format.FormatR32G32B32A32Float,
+                    InputSlot = 1,
+                    AlignedByteOffset = 0,
+                    InputSlotClass = InputClassification.PerInstanceData,
+                    InstanceDataStepRate = 0
+                };
+                descriptions[3] = new() {
+                    SemanticName = transform,
+                    SemanticIndex = 2,
+                    Format = Format.FormatR32G32B32A32Float,
+                    InputSlot = 1,
+                    AlignedByteOffset = 0,
+                    InputSlotClass = InputClassification.PerInstanceData,
+                    InstanceDataStepRate = 0
+                };
+                descriptions[4] = new() {
+                    SemanticName = transform,
+                    SemanticIndex = 3,
+                    Format = Format.FormatR32G32B32A32Float,
+                    InputSlot = 1,
+                    AlignedByteOffset = 0,
+                    InputSlotClass = InputClassification.PerInstanceData,
+                    InstanceDataStepRate = 0
+                };
+            }
+
+            fixed(InputElementDesc* ds = descriptions) {
+                Log.Info(device.CreateInputLayout(
+                    ds,
+                    (uint)descriptions.Length,
                     vertexCode.GetBufferPointer(),
                     vertexCode.GetBufferSize(),
                     ref inputLayout
                 ));
+                /*
+                SilkMarshal.ThrowHResult(device.CreateInputLayout(
+                ds,
+                    (uint)descriptions.Length,
+                    vertexCode.GetBufferPointer(),
+                    vertexCode.GetBufferSize(),
+                    ref inputLayout
+                ));
+                */
             }
         }
     }

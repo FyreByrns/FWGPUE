@@ -49,7 +49,7 @@ class Buffer<T>
     public int Length => Data.Length;
     public unsafe int ByteSize => sizeof(T) * Data.Length;
 
-    void OnDataChanged()
+    protected void OnDataChanged()
     {
         // update description
         Description = new()

@@ -1,5 +1,6 @@
 struct vs_in {
     float3 position_local : POS;
+    matrix transform : TRANSFORM;
 };
 struct vs_out {
     float4 position_clip : SV_POSITION;
