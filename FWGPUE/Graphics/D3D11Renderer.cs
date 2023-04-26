@@ -21,20 +21,18 @@ class D3D11Renderer {
 #endif
     #endregion
 
-    float[] vertices =
-{
-    //X    Y      Z
-    0.5f,  0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f,
-    -0.5f,  0.5f, 0.5f
-};
+    float[] vertices = {
+        //X    Y      Z
+        0.5f,  0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.5f
+    };
 
-    uint[] indices =
-    {
-    0, 1, 3,
-    1, 2, 3
-};
+    uint[] indices = {
+        0, 1, 3,
+        1, 2, 3
+    };
 
     float[] backgroundColour = new[] { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -52,6 +50,9 @@ class D3D11Renderer {
     Swapchain swapchain = default;
     Device device = default;
     DeviceContext deviceContext = default;
+
+    DrawObject drawObject;
+    List<DrawObject> drawObjects = new();
     VertexBuffer<float> vertexBuffer;
     Buffer<uint> indexBuffer;
 
@@ -63,6 +64,12 @@ class D3D11Renderer {
         CreateDevice();
         CreateSwapchain();
 
+        if (LogInfo) {
+            unsafe {
+                device.SetInfoQueueCallback(msg => Log.Info($"[DX info]: {SilkMarshal.PtrToString((nint)msg.PDescription)}"));
+            }
+        }
+
         vertexBuffer = new(device, vertices, 3, 0);
         indexBuffer = new(device, indices, BindFlag.IndexBuffer);
 
@@ -71,6 +78,9 @@ class D3D11Renderer {
 
         shader.Compile(compiler);
         shader.Create(device);
+
+        drawObject = new(vertexBuffer, indexBuffer, shader, D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
+        drawObjects.Add(drawObject);
     }
     void CreateDevice() {
         unsafe {
@@ -118,7 +128,7 @@ class D3D11Renderer {
         SilkMarshal.ThrowHResult(swapchain.ResizeBuffers(0, (uint)newSize.X, (uint)newSize.Y, Format.FormatR8G8B8A8Unorm, 0));
     }
 
-    enum DXGI_ERROR :uint {
+    enum DXGI_ERROR : uint {
         DXGI_ERROR_DEVICE_HUNG = 0x887A0006,
         DXGI_ERROR_DEVICE_REMOVED = 0x887A0005,
         DXGI_ERROR_DEVICE_RESET = 0x887A0007,
@@ -136,7 +146,7 @@ class D3D11Renderer {
             try {
                 SilkMarshal.ThrowHResult(device.CreateRenderTargetView(framebuffer, null, ref renderTargetView));
             }
-            catch (COMException e){
+            catch (COMException e) {
                 // device removed error probably
                 // .. see <https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11device-getdeviceremovedreason>
                 // ..     <https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-error>
@@ -152,18 +162,9 @@ class D3D11Renderer {
 
             deviceContext.OMSetRenderTargets(1, ref renderTargetView, ref nullref<ID3D11DepthStencilView>());
 
-            // use shader input layout
-            deviceContext.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
-            deviceContext.IASetInputLayout(shader.inputLayout);
-            deviceContext.IASetVertexBuffers(0, 1, vertexBuffer.D3DBuffer, in vertexBuffer.ByteStride, in vertexBuffer.Offset);
-            deviceContext.IASetIndexBuffer(indexBuffer.D3DBuffer, Format.FormatR32Uint, 0);
-
-            // bind shaders
-            deviceContext.VSSetShader(shader.vertexShader, ref nullref<ClassInstance>(), 0);
-            deviceContext.PSSetShader(shader.pixelShader, ref nullref<ClassInstance>(), 0);
-
-            // draw
-            deviceContext.DrawIndexed(6, 0, 0);
+            foreach (DrawObject o in drawObjects) {
+                o.Draw(deviceContext);
+            }
 
             swapchain.Present(1, 0);
 
