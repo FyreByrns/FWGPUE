@@ -6,133 +6,13 @@ using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Core.Native;
-using System.Text;
-using Silk.NET.OpenGL;
 using System.Runtime.InteropServices;
 
 namespace FWGPUE.Graphics;
 
-class Shader : ByteFile {
-    public string Source;
-    public VertexShader vertexShader;
-    public PixelShader pixelShader;
-    public InputLayout inputLayout = default;
-
-    Blob vertexCode = default;
-    Blob pixelCode = default;
-
-    public bool Compiled { get; private set; }
-
-    public void SetLayout(params (string name, Type type)[] variables) {
-        foreach ((string name, Type type) in variables) {
-
-        }
-    }
-
-    public void Compile(D3DCompiler compiler) {
-        byte[] shaderBytes = Data!;
-
-        // compile vertex shader
-        Blob vertexErrors = default;
-        unsafe {
-            HResult result = compiler.Compile(
-                in shaderBytes[0],
-                (nuint)Source.Length,
-                nameof(Source),
-                null,
-                ref nullref<ID3DInclude>(),
-                "vs_main",
-                "vs_5_0",
-                0,
-                0,
-                ref vertexCode,
-                ref vertexErrors
-            );
-            if (result.IsFailure) {
-                if (vertexErrors.Handle is not null) {
-                    Log.Error(SilkMarshal.PtrToString((nint)vertexErrors.GetBufferPointer(), NativeStringEncoding.LPWStr) ?? "null message");
-                }
-            }
-        }
-
-        // compile pixel shader
-        Blob pixelErrors = default;
-        unsafe {
-            HResult result = compiler.Compile(
-                in shaderBytes[0],
-                (nuint)shaderBytes.Length,
-                nameof(Source),
-                null,
-                ref nullref<ID3DInclude>(),
-                "ps_main",
-                "ps_5_0",
-                0,
-                0,
-                ref pixelCode,
-                ref pixelErrors
-            );
-            if (result.IsFailure) {
-                if (pixelErrors.Handle is not null) {
-                    Log.Error(SilkMarshal.PtrToString((nint)pixelErrors.GetBufferPointer(), NativeStringEncoding.LPWStr) ?? "null message");
-                }
-            }
-        }
-    }
-    public void Create(Device device) {
-        unsafe {
-            SilkMarshal.ThrowHResult(device.CreateVertexShader(
-                vertexCode.GetBufferPointer(),
-                vertexCode.GetBufferSize(),
-                ref nullref<ID3D11ClassLinkage>(),
-                ref vertexShader
-            ));
-            SilkMarshal.ThrowHResult(device.CreatePixelShader(
-                pixelCode.GetBufferPointer(),
-                pixelCode.GetBufferSize(),
-                ref nullref<ID3D11ClassLinkage>(),
-                ref pixelShader
-            ));
-
-            // describe layout
-            fixed (byte* name = SilkMarshal.StringToMemory("POS")) {
-                InputElementDesc inputElement = new() {
-                    SemanticName = name,
-                    SemanticIndex = 0,
-                    Format = Format.FormatR32G32B32Float,
-                    InputSlot = 0,
-                    AlignedByteOffset = 0,
-                    InputSlotClass = InputClassification.PerVertexData,
-                    InstanceDataStepRate = 0
-                };
-                SilkMarshal.ThrowHResult(device.CreateInputLayout(
-                    in inputElement,
-                    1,
-                    vertexCode.GetBufferPointer(),
-                    vertexCode.GetBufferSize(),
-                    ref inputLayout
-                ));
-            }
-        }
-    }
-
-    protected override void ReadData(byte[] data) {
-        try {
-            Source = Encoding.ASCII.GetString(data);
-            Data = Encoding.ASCII.GetBytes(Source);
-        }
-        catch (Exception e) {
-            Log.Error($"error loading shader: {e}");
-        }
-    }
-
-    protected override byte[] SaveData() {
-        return Encoding.ASCII.GetBytes(Source);
-    }
-
-    public Shader(EngineFileLocation location) : base(location) { }
-}
-
 class D3D11Renderer {
+    public const bool ForceDXVK = false;
+
     #region
 #if DEBUG
     public bool LogInfo { get; } = true;
@@ -164,9 +44,9 @@ class D3D11Renderer {
 
     public IWindow Window { get; private set; }
 
-    public DXGI dxgi = DXGI.GetApi();
-    public D3D11 d3d11 = D3D11.GetApi();
-    public D3DCompiler compiler = D3DCompiler.GetApi();
+    public DXGI dxgi;
+    public D3D11 d3d11;
+    public D3DCompiler compiler;
 
     Factory factory = default;
     Swapchain swapchain = default;
@@ -174,20 +54,20 @@ class D3D11Renderer {
     DeviceContext deviceContext = default;
     VertexBuffer<float> vertexBuffer;
     Buffer<uint> indexBuffer;
-    //Buffer vertexBuffer = default;
-    //Buffer indexBuffer = default;
-    VertexShader vertexShader = default;
-    PixelShader pixelShader = default;
 
     public void Setup() {
-        shader = new Shader("assets/d3d11testing.shader");
-        shader.Load();
+        dxgi = DXGI.GetApi(Window, ForceDXVK);
+        d3d11 = D3D11.GetApi(Window, ForceDXVK);
+        compiler = D3DCompiler.GetApi();
 
         CreateDevice();
         CreateSwapchain();
 
         vertexBuffer = new(device, vertices, 3, 0);
         indexBuffer = new(device, indices, BindFlag.IndexBuffer);
+
+        shader = new Shader("assets/d3d11testing.shader");
+        shader.Load();
 
         shader.Compile(compiler);
         shader.Create(device);
@@ -206,10 +86,6 @@ class D3D11Renderer {
                 null,
                 ref deviceContext
             ));
-
-            if (LogInfo) {
-                device.SetInfoQueueCallback(msg => Log.Info(SilkMarshal.PtrToString((nint)msg.PDescription) ?? "null message", true, "D3D Device", "", 0));
-            }
         }
     }
     void CreateSwapchain() {
@@ -267,33 +143,30 @@ class D3D11Renderer {
                 Log.Error($"probably device removed: {(DXGI_ERROR)device.GetDeviceRemovedReason()}");
                 return;
             }
-            // Clear the render target to be all black ahead of rendering.
+            // clear backbuffer
             deviceContext.ClearRenderTargetView(renderTargetView, ref backgroundColour[0]);
 
-            // Update the rasterizer state with the current viewport.
+            // use the current viewport
             var viewport = new Viewport(0, 0, Window.FramebufferSize.X, Window.FramebufferSize.Y, 0, 1);
             deviceContext.RSSetViewports(1, in viewport);
 
-            // Tell the output merger about our render target view.
             deviceContext.OMSetRenderTargets(1, ref renderTargetView, ref nullref<ID3D11DepthStencilView>());
 
-            // Update the input assembler to use our shader input layout, and associated vertex & index buffers.
+            // use shader input layout
             deviceContext.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
             deviceContext.IASetInputLayout(shader.inputLayout);
             deviceContext.IASetVertexBuffers(0, 1, vertexBuffer.D3DBuffer, in vertexBuffer.ByteStride, in vertexBuffer.Offset);
             deviceContext.IASetIndexBuffer(indexBuffer.D3DBuffer, Format.FormatR32Uint, 0);
 
-            // Bind our shaders.
-            deviceContext.VSSetShader(vertexShader, ref nullref<ClassInstance>(), 0);
-            deviceContext.PSSetShader(pixelShader, ref nullref<ClassInstance>(), 0);
+            // bind shaders
+            deviceContext.VSSetShader(shader.vertexShader, ref nullref<ClassInstance>(), 0);
+            deviceContext.PSSetShader(shader.pixelShader, ref nullref<ClassInstance>(), 0);
 
-            // Draw the quad.
+            // draw
             deviceContext.DrawIndexed(6, 0, 0);
 
-            // Present the drawn image.
             swapchain.Present(1, 0);
 
-            // Clean up any resources created in this method.
             renderTargetView.Dispose();
         }
     }
