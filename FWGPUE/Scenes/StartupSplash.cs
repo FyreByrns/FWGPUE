@@ -3,8 +3,6 @@ using FWGPUE.Nodes;
 
 namespace FWGPUE.Scenes;
 
-using Colour = TextColour;
-using static Engine.TextAlignment;
 using static Silk.NET.Input.Key;
 
 class StartupSplash : Scene {
@@ -16,12 +14,6 @@ class StartupSplash : Scene {
         Load<StartupSplash>();
 
         ShowTime = GetGlobal<int>("ShowTime");
-
-        splashArtNode = new SpriteNode() {
-            Sprite = "splashart",
-            TargetWidthPercentage = 1
-        };
-        Nodes.AddChild(splashArtNode, NodeFilters.ChildOf(Nodes.Root));
     }
 
     public override void Tick() {
@@ -38,9 +30,6 @@ class StartupSplash : Scene {
 
     public override void Render() {
         base.Render();
-
-        DrawText("(space to skip)", new(0, 0), Colour.Black, size: 15);
-        DrawText("Made by: \n\tGavin White \n\tGaelan Edwards \n\tAku Ichigoo", new(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Colour.Black, size: 64, alignment: Center);
     }
 
     public override void Unload() { }

@@ -1,6 +1,4 @@
-﻿global using TextColour = FontStashSharp.FSColor;
-global using TextAlignment = FWGPUE.Engine.TextAlignment;
-global using Key = Silk.NET.Input.Key;
+﻿global using Key = Silk.NET.Input.Key;
 global using MouseButton = Silk.NET.Input.MouseButton;
 global using FileType = FWGPUE.IO.EngineFileLocation.FileType;
 
@@ -9,7 +7,10 @@ global using static FWGPUE.Input;
 global using static FWGPUE.GlobalHelpers;
 global using static FWGPUE.IO.ConfigFile;
 
-namespace FWGPUE {
+global using static FWGPUE.Graphics.Renderer;
+
+namespace FWGPUE
+{
     public static class GlobalHelpers {
         public static float DegreesToRadians(float degrees) {
             return MathF.PI / 180f * degrees;

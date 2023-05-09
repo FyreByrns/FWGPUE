@@ -85,16 +85,10 @@ class NodeCollection {
     /// Draw connections between nodes.
     /// </summary>
     public void DrawDebugConnections() {
-        foreach (Node2D node in Root.AllNodes()) {
-            if (node.Parent is not null && !node.Parent.IsBase) {
-                DrawLine(new(1, 1, 1), node.Parent.RelativeOffset(), node.RelativeOffset());
-            }
-        }
+
     }
     public void DrawDebugNodes() {
-        foreach (Node2D node in Root.AllNodes()) {
-            DrawCircle(new(0, 1, 0), node.RelativeOffset(), 4);
-        }
+
     }
 
     #endregion drawing

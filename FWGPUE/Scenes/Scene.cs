@@ -1,5 +1,4 @@
-﻿using FontStashSharp;
-using FWGPUE.IO;
+﻿using FWGPUE.IO;
 using static FWGPUE.IO.DataMarkupFile;
 
 using FWGPUE.Graphics;
@@ -130,6 +129,5 @@ abstract class Scene {
 
     public virtual void Render() {
         Nodes.DrawNodes();
-        DrawText($"{GetType().Name} // {TotalTimeInScene:#.##}", Camera.ScreenToWorld(new(0, Window.Size.Y * 0.98f)), FSColor.Tan);
     }
 }
