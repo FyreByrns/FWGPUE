@@ -9,6 +9,8 @@ global using static FWGPUE.IO.ConfigFile;
 
 global using static FWGPUE.Graphics.Renderer;
 
+global using FWGPUE.IO;
+
 namespace FWGPUE
 {
     public static class GlobalHelpers {

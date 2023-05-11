@@ -39,7 +39,7 @@ static class Engine {
         Renderer.OnLoad += Load;
         Renderer.OnClose += Closing;
 
-        Renderer.SetupWindow();
+        Renderer.Setup();
         Renderer.Begin();
     }
 
