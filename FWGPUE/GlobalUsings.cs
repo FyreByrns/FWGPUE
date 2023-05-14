@@ -7,7 +7,7 @@ global using static FWGPUE.Input;
 global using static FWGPUE.GlobalHelpers;
 global using static FWGPUE.IO.ConfigFile;
 
-global using static FWGPUE.Graphics.Renderer;
+global using static FWGPUE.Graphics.RenderManager;
 
 global using FWGPUE.IO;
 

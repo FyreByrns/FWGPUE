@@ -19,7 +19,8 @@ static class Engine {
     public static Scene? NextScene { get; private set; }
     public static bool WaitingToChangeScenes { get; private set; }
 
-    public static Renderer Renderer;
+    public static OrthoCamera2D Camera { get; set; } = new(new(0, 0), 10);
+    public static RenderManager Renderer { get; private set; }
 
     public static void ChangeToScene(Scene? scene) {
         WaitingToChangeScenes = true;
