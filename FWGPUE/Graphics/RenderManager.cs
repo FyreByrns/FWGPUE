@@ -43,12 +43,7 @@ class RenderManager {
         SpritesToRender.Add(new(x, y, z, spriteName, scaleX, scaleY, rotX, rotY, rotZ));
     }
 
-    Random rng = new();
     void OnFrameRender(double elapsed) {
-        for (int i = 0; i < 100; i++) {
-            PushSprite(rng.Next(0, Config.ScreenWidth), rng.Next(0, Config.ScreenHeight), 1, "square", scaleX: rng.NextSingle() * 3, scaleY: rng.NextSingle() * 3, rotZ: rng.NextSingle());
-        }
-
         // render all stages
         RenderStage? previous = null;
         foreach (RenderStage stage in RenderStages) {
