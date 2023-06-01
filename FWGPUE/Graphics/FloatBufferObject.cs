@@ -17,14 +17,14 @@ class FloatBufferObject {
     /// </param>
     /// <param name="size">How many floats this attribute takes up per slot.</param>
     /// <param name="stride">How large the overall vertex data this attribute is part of is.</param>
-    public void AttributePointer(uint vertexArray, int slot, int slots, int size, int stride) {
+    public void AttributePointer(uint vertexArray, int slot, int slots, int size, int stride, int start = 0) {
         Gl.BindVertexArray(vertexArray);
         Bind();
         unsafe {
             for (int i = 0; i < slots; i++) {
                 Log.Info($"{i + 1} of {slots} from {slot} ({slot + i} overall)");
                 Gl.EnableVertexArrayAttrib(vertexArray, (uint)(slot + i));
-                Gl.VertexAttribPointer((uint)(slot + i), size, VertexAttribPointerType.Float, false, (uint)(stride * sizeof(float)), (void*)(stride * sizeof(float) * i));
+                Gl.VertexAttribPointer((uint)(slot + i), size, VertexAttribPointerType.Float, false, (uint)(stride * sizeof(float)), (void*)(start * sizeof(float)));
                 Log.Info(".. setup");
             }
         }
