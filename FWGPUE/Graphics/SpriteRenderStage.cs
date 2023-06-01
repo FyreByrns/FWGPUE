@@ -78,10 +78,10 @@ class SpriteRenderStage : RenderStage {
         AtlasedSpriteShader = new Shader(new("assets/sprite.shader"));
 
         Quad = new();
-        Quad.AddBufferObject(1, 3, 3);
-        Quad.AddBufferObject(1, 2, 2);
-        Quad.AddBufferObject(4, 4, 4, true, 1);
-        Quad.AddBufferObject(1, 4, 4, true, 1);
+        Quad.AddBufferObject(1, 3, 3); // vertices
+        Quad.AddBufferObject(1, 2, 2); // uvs
+        Quad.AddBufferObject(4, 4, 4, true, 1); // transform
+        Quad.AddBufferObject(1, 4, 4, true, 1); // atlas UV
 
         Quad.SetBufferData(0, quadVertices);
         Quad.SetBufferData(1, quadUVs);
