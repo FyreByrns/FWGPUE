@@ -23,13 +23,7 @@ class SpriteRenderStage : RenderStage {
         1f, 1f, // C
     };
 
-    uint quadVAO;
-
-    FloatBufferObject bo_QuadVertices;
-    FloatBufferObject bo_QuadUVs;
-    FloatBufferObject i_bo_Offsets;
-    FloatBufferObject i_bo_AtlasUVs;
-
+    VertexArrayObject Quad;
     Shader AtlasedSpriteShader;
 
     public override void Render(RenderStage? previous) {
@@ -66,11 +60,11 @@ class SpriteRenderStage : RenderStage {
             uvs[i] = new Vector4(rect.X, rect.Y, rect.Width, rect.Height);
         });
 
-        Gl.BindVertexArray(quadVAO);
-        i_bo_Offsets.SetData(quadVAO, offsets);
-        i_bo_AtlasUVs.SetData(quadVAO, uvs);
+        Quad.SetBufferData(2, offsets);
+        Quad.SetBufferData(3, uvs);
 
         // draw sprites instanced
+        Quad.Bind();
         AtlasedSpriteShader.Use();
         AtlasedSpriteShader.SetUniform("uView", Camera.ViewMatrix);
         AtlasedSpriteShader.SetUniform("uProjection", Camera.ProjectionMatrix);
@@ -83,26 +77,13 @@ class SpriteRenderStage : RenderStage {
     public SpriteRenderStage() : base() {
         AtlasedSpriteShader = new Shader(new("assets/sprite.shader"));
 
-        quadVAO = Gl.GenVertexArray();
+        Quad = new();
+        Quad.AddBufferObject(1, 3, 3);
+        Quad.AddBufferObject(1, 2, 2);
+        Quad.AddBufferObject(4, 4, 4, true, 1);
+        Quad.AddBufferObject(1, 4, 4, true, 1);
 
-        int slot = 0;
-        bo_QuadVertices = new();
-        bo_QuadVertices.AttributePointer(quadVAO, slot, 1, 3, 3);
-        bo_QuadVertices.SetData(quadVAO, quadVertices);
-        slot++;
-
-        bo_QuadUVs = new();
-        bo_QuadUVs.AttributePointer(quadVAO, slot, 1, 2, 2);
-        bo_QuadUVs.SetData(quadVAO, quadUVs);
-        slot++;
-
-        i_bo_Offsets = new();
-        i_bo_Offsets.AttributePointer(quadVAO, slot, 4, 4, 4);
-        i_bo_Offsets.Instanced(quadVAO, slot, 4, 1);
-        slot += 4;
-
-        i_bo_AtlasUVs = new();
-        i_bo_AtlasUVs.AttributePointer(quadVAO, slot, 1, 4, 2);
-        i_bo_AtlasUVs.Instanced(quadVAO, slot, 1, 1);
+        Quad.SetBufferData(0, quadVertices);
+        Quad.SetBufferData(1, quadUVs);
     }
 }
