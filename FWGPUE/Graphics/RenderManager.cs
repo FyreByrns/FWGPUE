@@ -49,18 +49,35 @@ class RenderManager {
     }
 
     public record ToRenderGeometry(float x, float y, float z, Vector3 colour);
-    public HashSet<ToRenderGeometry> GeometryToRender = new();
+    public List<ToRenderGeometry> GeometryToRender = new();
     public void PushVertex(float x, float y, float z, Vector3 colour) {
         GeometryToRender.Add(new(x, y, z, colour));
     }
-
     /// <summary>
     /// Request rendering of a triangle at a certain Z level.
     /// </summary>
-    public void PushTriangle(float ax, float ay, float bx, float by, float cx, float cy, float z, Vector3 colour) {
-        PushVertex(ax, ay, z, colour);
-        PushVertex(bx, by, z, colour);
-        PushVertex(cx, cy, z, colour);
+    public void PushTriangle(Vector2 a, Vector2 b, Vector2 c, float z, Vector3 colour) {
+        PushVertex(a.X, a.Y, z, colour);
+        PushVertex(b.X, b.Y, z, colour);
+        PushVertex(c.X, c.Y, z, colour);
+    }
+    public void PushLine(float ax, float ay, float bx, float by, float z, Vector3 colour, float thickness = 1) {
+        // construct line out of two triangles
+        Vector2 start = new(ax, ay);
+        Vector2 end = new(bx, by);
+
+        float angleBetween = RadiansToTurns((float)Math.Atan2(start.Y - end.Y, start.X - end.X));
+        float anglePlusHalf = angleBetween + 0.5f;
+
+        thickness /= 2;
+
+        Vector2 a = start.Along(+thickness, anglePlusHalf);
+        Vector2 b = start.Along(-thickness, anglePlusHalf);
+        Vector2 c = end.Along(+thickness, anglePlusHalf);
+        Vector2 d = end.Along(-thickness, anglePlusHalf);
+
+        PushTriangle(a, c, b, z, colour);
+        PushTriangle(b, c, d, z, colour);
     }
 
     void OnFrameRender(double elapsed) {
