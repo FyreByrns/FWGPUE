@@ -58,29 +58,31 @@ class RenderManager {
     /// </summary>
     public void PushTriangle(Vector2 a, Vector2 b, Vector2 c, float z, Vector3 colour) {
         PushVertex(new(a, z), colour);
-        PushVertex(new(a, z), colour);
-        PushVertex(new(a, z), colour);
+        PushVertex(new(b, z), colour);
+        PushVertex(new(c, z), colour);
     }
-    public void PushLine(float ax, float ay, float bx, float by, float z, Vector3 colour, float thickness = 1) {
-        // construct line out of two triangles
-        Vector2 start = new(ax, ay);
-        Vector2 end = new(bx, by);
-
-        float angleBetween = RadiansToTurns((float)Math.Atan2(start.Y - end.Y, start.X - end.X));
+    public void PushLine(Vector2 a, Vector2 b, float z, Vector3 colour, float thickness = 1) {
+        float angleBetween = RadiansToTurns((float)Math.Atan2(a.Y - b.Y, a.X - b.X));
         float anglePlusHalf = angleBetween + 0.5f;
 
         thickness /= 2;
 
-        Vector2 a = start.Along(+thickness, anglePlusHalf);
-        Vector2 b = start.Along(-thickness, anglePlusHalf);
-        Vector2 c = end.Along(+thickness, anglePlusHalf);
-        Vector2 d = end.Along(-thickness, anglePlusHalf);
+        Vector2 _a = a.Along(+thickness, anglePlusHalf);
+        Vector2 _b = a.Along(-thickness, anglePlusHalf);
+        Vector2 _c = b.Along(+thickness, anglePlusHalf);
+        Vector2 _d = b.Along(-thickness, anglePlusHalf);
 
-        PushTriangle(a, c, b, z, colour);
-        PushTriangle(b, c, d, z, colour);
+        PushTriangle(_a, _c, _b, z, colour);
+        PushTriangle(_b, _c, _d, z, colour);
+    }
+    public void PushLine(float ax, float ay, float bx, float by, float z, Vector3 colour, float thickness = 1) {
+        PushLine(new(ax, ay), new(bx, by), z, colour, thickness);
     }
 
     void OnFrameRender(double elapsed) {
+        // request all render objects
+        OnRenderObjectsRequired?.Invoke(elapsed);
+
         // render all stages
         RenderStage? previous = null;
         foreach (RenderStage stage in RenderStages) {
