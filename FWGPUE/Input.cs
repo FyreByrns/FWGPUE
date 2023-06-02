@@ -5,6 +5,9 @@ using System.Numerics;
 namespace FWGPUE;
 
 static class Input {
+    public delegate void MouseMoveEventHandler(Vector2 oldMouse, Vector2 newMouse);
+    public static MouseMoveEventHandler MouseMove;
+
     public static IInputContext? InputContext { get; set; }
 
     /// <summary> Whether keys are down (true) or up (false). </summary>
@@ -20,6 +23,8 @@ static class Input {
     public static int[]? MouseFrames { get; set; }
     /// <summary> Time in seconds mouse buttons have been down, or 0 if they are not currently down. </summary>
     public static float[]? MouseTimers { get; set; }
+    /// <summary> Last position of the mouse. </summary>
+    public static Vector2 LastMouse { get; set; }
 
     public static void UpdateKeyFrames() {
         for (int key = 0; key < (int)Enum.GetValues<Key>().Max(); key++) {
@@ -61,6 +66,13 @@ static class Input {
                 MouseTimers![mouse] = 0;
             }
         }
+    }
+    public static void UpdateMousePosition() {
+        Vector2 currentMouse = MousePosition();
+        if(currentMouse != LastMouse) {
+            MouseMove?.Invoke(LastMouse, currentMouse);
+        }
+        LastMouse = currentMouse;
     }
 
     public static bool KeyPressed(Key key, int framesSincePress = 1) {
@@ -110,6 +122,7 @@ static class Input {
         UpdateMouseTimers((float)elapsed);
         UpdateKeyFrames();
         UpdateKeyTimers((float)elapsed);
+        UpdateMousePosition();
     }
 
     public static void Init() {
