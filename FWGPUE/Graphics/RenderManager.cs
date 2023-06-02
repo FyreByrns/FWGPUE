@@ -50,16 +50,16 @@ class RenderManager {
 
     public record ToRenderGeometry(float x, float y, float z, Vector3 colour);
     public List<ToRenderGeometry> GeometryToRender = new();
-    public void PushVertex(float x, float y, float z, Vector3 colour) {
-        GeometryToRender.Add(new(x, y, z, colour));
+    public void PushVertex(Vector3 position, Vector3 colour) {
+        GeometryToRender.Add(new(position.X, position.Y, position.Z, colour));
     }
     /// <summary>
     /// Request rendering of a triangle at a certain Z level.
     /// </summary>
     public void PushTriangle(Vector2 a, Vector2 b, Vector2 c, float z, Vector3 colour) {
-        PushVertex(a.X, a.Y, z, colour);
-        PushVertex(b.X, b.Y, z, colour);
-        PushVertex(c.X, c.Y, z, colour);
+        PushVertex(new(a, z), colour);
+        PushVertex(new(a, z), colour);
+        PushVertex(new(a, z), colour);
     }
     public void PushLine(float ax, float ay, float bx, float by, float z, Vector3 colour, float thickness = 1) {
         // construct line out of two triangles
