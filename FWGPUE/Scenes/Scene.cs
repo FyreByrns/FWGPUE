@@ -126,8 +126,4 @@ abstract class Scene {
         TotalTimeInScene += TickTime;
         Nodes.TickNodes();
     }
-
-    public virtual void Render() {
-        Nodes.DrawNodes();
-    }
 }

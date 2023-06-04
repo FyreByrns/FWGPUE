@@ -78,6 +78,77 @@ class RenderManager {
     public void PushLine(float ax, float ay, float bx, float by, float z, Vector3 colour, float thickness = 1) {
         PushLine(new(ax, ay), new(bx, by), z, colour, thickness);
     }
+    public void PushRect(Vector2 topLeft, Vector2 bottomRight, float z, Vector3 colour, float outlineThickness = 0, Vector3? outlineColour = null, bool filled = true) {
+        Vector2 offsetUp = new(0, -outlineThickness / 2f);
+        Vector2 offsetDown = new(0, outlineThickness / 2f);
+        Vector2 offsetLeft = new(-outlineThickness / 2f, 0);
+        Vector2 offsetRight = new(outlineThickness / 2f, 0);
+
+        Vector2 a = topLeft + offsetRight + offsetDown;
+        Vector2 b = new Vector2(bottomRight.X, topLeft.Y) + offsetLeft + offsetDown;
+        Vector2 c = new Vector2(topLeft.X, bottomRight.Y) + offsetRight + offsetUp;
+        Vector2 d = bottomRight + offsetLeft + offsetUp;
+
+        if (filled) {
+            PushTriangle(a, b, c, z, colour);
+            PushTriangle(c, b, d, z, colour);
+        }
+
+        if (outlineThickness > 0 && outlineColour is not null) {
+            PushLine(a + offsetLeft, b + offsetRight, z + 1, outlineColour ?? Vector3.One, outlineThickness);
+            PushLine(b + offsetUp, d + offsetDown, z + 1, outlineColour ?? Vector3.One, outlineThickness);
+            PushLine(d + offsetRight, c + offsetLeft, z + 1, outlineColour ?? Vector3.One, outlineThickness);
+            PushLine(c + offsetDown, a + offsetUp, z + 1, outlineColour ?? Vector3.One, outlineThickness);
+        }
+    }
+    public void PushCircle(Vector2 center, float radius, float z, Vector3 colour, bool filled = true, int points = 30) {
+        // generate vertices
+        float change = 1f / (float)points;
+        for (int i = 0; i < points; i++) {
+            int last = i - 1;
+            Vector2 a = center.Along(radius, last * change);
+            Vector2 b = center.Along(radius, i * change);
+
+            if (filled) {
+                PushTriangle(a, b, center, z, colour);
+            }
+            else {
+                PushLine(a, b, z, colour);
+            }
+        }
+    }
+    public void PushConvexPolygon(float z, Vector3 colour, bool filled = true, bool outline = false, float thickness = 1, params Vector2[] points) {
+        if (points.Length == 0) {
+            return;
+        }
+
+        // if there are fewer points than 2, it's just a point
+        if (points.Length < 2) {
+            PushCircle(points[0], thickness, z, colour, filled);
+            return;
+        }
+
+        // if there are only two, then it's a line
+        if (points.Length == 2) {
+            PushLine(points[0], points[1], z, colour, thickness);
+            return;
+        }
+
+        // otherwise, handle as normal
+        Vector2 lastPoint = points.Last();
+        foreach (Vector2 point in points) {
+            if (filled) {
+                PushTriangle(points[0], point, lastPoint, z, colour);
+            }
+
+            if (outline) {
+                PushLine(lastPoint, point, z + 1, colour, thickness);
+                PushCircle(point, thickness / 2, z + 1, colour);
+            }
+
+            lastPoint = point;
+        }
+    }
 
     void OnFrameRender(double elapsed) {
         // request all render objects

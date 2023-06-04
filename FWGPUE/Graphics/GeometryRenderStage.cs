@@ -30,6 +30,7 @@ class GeometryRenderStage : RenderStage {
         GeometryShader.SetUniform("uView", Camera.ViewMatrix);
         GeometryShader.SetUniform("uProjection", Camera.ProjectionMatrix);
 
+        Gl.Enable(EnableCap.DepthTest);
         Gl.DrawArrays(PrimitiveType.Triangles, 0, (uint)geo.Length);
     }
 

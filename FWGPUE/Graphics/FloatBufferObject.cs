@@ -22,10 +22,9 @@ class FloatBufferObject {
         Bind();
         unsafe {
             for (int i = 0; i < slots; i++) {
-                Log.Info($"{i + 1} of {slots} from {slot} ({slot + i} overall)");
+                Log.Info($"{i + 1} of {slots} from {slot} ({slot + i} overall) [ start: {start} / stride: {stride} ]");
                 Gl.EnableVertexArrayAttrib(vertexArray, (uint)(slot + i));
-                Gl.VertexAttribPointer((uint)(slot + i), size, VertexAttribPointerType.Float, false, (uint)(stride * sizeof(float)), (void*)(start * sizeof(float) + (i * size * sizeof(float))));
-                Log.Info(".. setup");
+                Gl.VertexAttribPointer((uint)(slot + i), size, VertexAttribPointerType.Float, false, (uint)(stride * sizeof(float)), (void*)((start * sizeof(float)) + (i * size * sizeof(float))));
             }
         }
     }

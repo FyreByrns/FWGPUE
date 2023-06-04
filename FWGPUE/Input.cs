@@ -6,7 +6,7 @@ namespace FWGPUE;
 
 static class Input {
     public delegate void MouseMoveEventHandler(Vector2 oldMouse, Vector2 newMouse);
-    public static MouseMoveEventHandler MouseMove;
+    public static event MouseMoveEventHandler MouseMove;
 
     public static IInputContext? InputContext { get; set; }
 

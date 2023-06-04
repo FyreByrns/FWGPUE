@@ -11,9 +11,5 @@ class MainMenu : Scene {
         base.Tick();
     }
 
-    public override void Render() {
-
-    }
-
     public override void Unload() { }
 }
