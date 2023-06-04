@@ -118,6 +118,57 @@ class Test : Scene {
             });
             G = _G.ToArray();
 
+            List<Vector2[]> _H = new();
+            _H.AddRange(new[] {
+                GenerateRectGeo(new(0,0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.9f,0), new(1, 1)).ToArray(),
+                GenerateRectGeo(new(0f, 0.45f), new(1.00f, 0.55f)).ToArray(),
+            });
+            H = _H.ToArray();
+
+            List<Vector2[]> _I = new();
+            _I.AddRange(new[] {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
+                GenerateRectGeo(new(0, 0.9f), new(1, 1)).ToArray(),
+                GenerateRectGeo(new(0.45f, 0f), new(0.55f, 1)).ToArray(),
+            });
+            I = _I.ToArray();
+
+            List<Vector2[]> _J = new();
+            _J.AddRange(GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f));
+            _J.AddRange(new[] {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
+                GenerateRectGeo(new(0.9f, 0), new(1, 0.75f)).ToArray(),
+                GenerateRectGeo(new(0, 0.9f), new(0.75f, 1)).ToArray(),
+            });
+            J = _J.ToArray();
+
+            List<Vector2[]> _K = new();
+            _K.AddRange(new[] {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.1f, 0.45f), new(0.55f, 0.55f)).ToArray(),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.02f), 0.1f).ToArray(),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.98f), 0.1f).ToArray(),
+            });
+            K = _K.ToArray();
+
+            L = new Vector2[][] {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.1f, 0.9f), new(1, 1)).ToArray()
+            };
+            M = new Vector2[][] {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.9f, 0), new(1, 1)).ToArray(),
+                GenerateLineGeo(new(0f, 0f), new(0.5f, 0.5f), 0.1f).ToArray(),
+                GenerateLineGeo(new(1, 0f), new(0.5f, 0.5f), 0.1f).ToArray(),
+            };
+            N = new Vector2[][] {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.9f, 0), new(1, 1)).ToArray(),
+                GenerateLineGeo(new(0, 0), new(1, 1), 0.1f).ToArray(),
+            };
+            O = GenerateCircleGeo(new(0.5f), 0, 1, 0.5f, 0.1f).ToArray();
+
             Type letters = typeof(Letters);
             foreach (FieldInfo info in letters.GetFields()) {
                 if (Alphabet.Contains(info.Name.First())) {
@@ -134,7 +185,7 @@ class Test : Scene {
                         yield return letter.TransformAll(new Vector2(totalOffset, 0)).ToArray();
                     }
                 }
-                totalOffset++;
+                totalOffset += 1.1f;
             }
         }
 
@@ -153,14 +204,59 @@ class Test : Scene {
             new Vector2[] { new(0.5f, 0), new(1, 1), new(0.9f, 1), new(0.5f, 0.2f) },
             new Vector2[] { new(0.25f, 0.5f), new(0.75f, 0.5f), new(0.75f, 0.6f), new(0.25f, 0.6f) }
         };
+        public static Vector2[][] a;
         public static Vector2[][] B;
+        public static Vector2[][] b;
         public static Vector2[][] C;
+        public static Vector2[][] c;
         public static Vector2[][] D;
+        public static Vector2[][] d;
         public static Vector2[][] E;
+        public static Vector2[][] e;
         public static Vector2[][] F;
+        public static Vector2[][] f;
         public static Vector2[][] G;
+        public static Vector2[][] g;
+        public static Vector2[][] H;
+        public static Vector2[][] h;
+        public static Vector2[][] I;
+        public static Vector2[][] i;
+        public static Vector2[][] J;
+        public static Vector2[][] j;
+        public static Vector2[][] K;
+        public static Vector2[][] k;
+        public static Vector2[][] L;
+        public static Vector2[][] l;
+        public static Vector2[][] M;
+        public static Vector2[][] m;
+        public static Vector2[][] N;
+        public static Vector2[][] n;
+        public static Vector2[][] O;
+        public static Vector2[][] o;
+        public static Vector2[][] P;
+        public static Vector2[][] p;
+        public static Vector2[][] Q;
+        public static Vector2[][] q;
+        public static Vector2[][] R;
+        public static Vector2[][] r;
+        public static Vector2[][] S;
+        public static Vector2[][] s;
+        public static Vector2[][] T;
+        public static Vector2[][] t;
+        public static Vector2[][] U;
+        public static Vector2[][] u;
+        public static Vector2[][] V;
+        public static Vector2[][] v;
+        public static Vector2[][] W;
+        public static Vector2[][] w;
+        public static Vector2[][] X;
+        public static Vector2[][] x;
+        public static Vector2[][] Y;
+        public static Vector2[][] y;
+        public static Vector2[][] Z;
+        public static Vector2[][] z;
 
-        static IEnumerable<Vector2> GenerateLineGeo(Vector2 a, Vector2 b, float thickness = 1) {
+        public static IEnumerable<Vector2> GenerateLineGeo(Vector2 a, Vector2 b, float thickness = 1) {
             float angleBetween = RadiansToTurns((float)Math.Atan2(a.Y - b.Y, a.X - b.X));
             float anglePlusHalf = angleBetween + 0.5f;
 
@@ -176,7 +272,7 @@ class Test : Scene {
             yield return _d;
             yield return _b;
         }
-        static IEnumerable<Vector2[]> GenerateCircleGeo(Vector2 center, float fromAngle, float length, float radius, float thickness, int steps = 30) {
+        public static IEnumerable<Vector2[]> GenerateCircleGeo(Vector2 center, float fromAngle, float length, float radius, float thickness, int steps = 30) {
             for (int i = 1; i <= steps; i++) {
                 float angleChange = length / (float)steps;
                 float lastAngle = fromAngle + angleChange * (i - 1);
@@ -190,7 +286,7 @@ class Test : Scene {
                 };
             }
         }
-        static IEnumerable<Vector2> GenerateRectGeo(Vector2 topLeft, Vector2 bottomRight) {
+        public static IEnumerable<Vector2> GenerateRectGeo(Vector2 topLeft, Vector2 bottomRight) {
             yield return topLeft;
             yield return new(bottomRight.X, topLeft.Y);
             yield return bottomRight;
