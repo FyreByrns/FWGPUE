@@ -176,9 +176,11 @@ class RenderManager {
     public void Setup() {
         WindowOptions options = WindowOptions.Default with {
             Size = new Vector2D<int>(Config.ScreenWidth, Config.ScreenHeight),
+            FramesPerSecond = Config.FPS,
             Title = "FWGPUE",
             Samples = 8,
         };
+        Log.Info(options.FramesPerSecond);
         Window = Silk.NET.Windowing.Window.Create(options);
         Window.Update += (e) => {
             OnFrame?.Invoke(e);
