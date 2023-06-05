@@ -194,13 +194,61 @@ class Test : Scene {
                 GenerateRectGeo(new(0, 0.20f), new(0.1f, 0.30f)),
                 GenerateRectGeo(new(0.9f, 0.70f), new(1, 0.80f))
             };
-    }
+            CharsToLetterDefinitions['T'] = new() {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0.45f, 0.1f), new(0.55f, 1f)),
+            };
+            CharsToLetterDefinitions['U'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)),
+                GenerateRectGeo(new(0.00f, 0.00f), new(0.10f, 0.75f)),
+                GenerateRectGeo(new(0.90f, 0.00f), new(1.00f, 0.75f)),
+            };
+            CharsToLetterDefinitions['V'] = new() {
+                GenerateLineGeo(new(0.05f, 0.05f), new(0.32f, 0.85f), 0.1f),
+                GenerateLineGeo(new(0.95f, 0.05f), new(0.68f, 0.85f), 0.1f),
+                GenerateCircleGeo(new(0.5f, 0.75f), 0.80f, 0.40f, 0.25f, 0.1f)
+            };
+            CharsToLetterDefinitions['W'] = new() {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
+                GenerateRectGeo(new(0.9f, 0), new(1, 1)).ToArray(),
+                GenerateRectGeo(new(0.45f, 0), new(0.55f, 0.55f)),
+                GenerateCircleGeo(new(0, 0.55f), 0.75f, 0.25f, 0.55f, 0.1f),
+                GenerateCircleGeo(new(1, 0.55f), 0.00f, 0.25f, 0.55f, 0.1f)
+            };
+            CharsToLetterDefinitions['X'] = new() {
+                GenerateRectGeo(new(0.45f, 0.45f), new(0.55f, 0.55f)),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.02f), 0.1f),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.98f), 0.1f),
+                GenerateLineGeo(new(0.5f, 0.5f), new(1-0.85f, 0.02f), 0.1f),
+                GenerateLineGeo(new(0.5f, 0.5f), new(1-0.85f, 0.98f), 0.1f),
+            };
+            CharsToLetterDefinitions['Y'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.30f), 0.0f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.70f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 0.0f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.45f), new(1f, 0.55f)),
+                GenerateRectGeo(new(0.25f, 0.9f), new(0.75f, 1)),
+                GenerateRectGeo(new(0, 0.20f), new(0.1f, 0.30f)),
+                GenerateRectGeo(new(0, 0), new(0.1f, 0.3f)),
+                GenerateRectGeo(new(0.9f, 0f), new(1, 0.80f))
+            };
+            CharsToLetterDefinitions['Z'] = new() {
+                GenerateLineGeo(new(0.78f, 0.475f), new(0.22f, 0.525f), 0.1f),
+                GenerateRectGeo(new(0, 0), new(0.75f, 0.1f)),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.5f, 0.47f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 0.0f, 0.47f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.9f), new(1, 1)),
+            };
+        }
 
         public static IEnumerable<Vector2[]> GetTextPolygons(string text) {
             float xOffset = 0;
             float yOffset = 0;
             foreach (char c in text) {
-                if(c == '\n') {
+                if (c == '\n') {
                     xOffset = 0;
                     yOffset += 1.1f;
                     continue;
@@ -209,6 +257,13 @@ class Test : Scene {
                 if (CharsToLetterDefinitions.ContainsKey(c)) {
                     foreach (var polygon in CharsToLetterDefinitions[c].Polygons) {
                         yield return polygon.TransformAll(new Vector2(xOffset, yOffset)).ToArray();
+                    }
+                }
+
+                // temp hack for lowercase
+                if (char.IsLower(c) && CharsToLetterDefinitions.ContainsKey(char.ToUpper(c))) {
+                    foreach (var polygon in CharsToLetterDefinitions[char.ToUpper(c)].Polygons) {
+                        yield return polygon.ScaleAll(new(0.9f, 0.5f)).TransformAll(new Vector2(xOffset+0.1f, yOffset+0.5f)).ToArray();
                     }
                 }
 
