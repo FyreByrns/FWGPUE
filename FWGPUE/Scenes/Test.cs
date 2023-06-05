@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Numerics;
-using Silk.NET.OpenGL;
 
 namespace FWGPUE.Scenes;
 
@@ -51,210 +50,171 @@ class Test : Scene {
     }
 
     static class Letters {
-        static Dictionary<char, Vector2[][]> CharsToLetterDefinitions = new();
+        static Dictionary<char, PolygonSet> CharsToLetterDefinitions = new();
         const string Alphabet = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
         static Letters() {
-            List<Vector2[]> _B = new();
-            _B.AddRange(GenerateCircleGeo(new(1 - 0.3f, 0.3f), 0.5f, 0.42f, 0.3f, 0.1f));
-            _B.AddRange(GenerateCircleGeo(new(1 - 0.3f, 0.7f), 0, -0.42f, 0.3f, 0.1f));
-            _B.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(0.1f, 1f)).ToArray(),
-                GenerateRectGeo(new(0, 0), new(1-0.3f, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0, 0.45f), new(0.9f, 0.55f)).ToArray(),
-                GenerateRectGeo(new(0, 0.9f), new(1-0.3f, 1)).ToArray(),
-            });
-            B = _B.ToArray();
-
-            //C = GenerateCircleGeo(new(0.5f, 0.5f), -0.1f, 0.7f, 0.5f, 0.1f).ToArray();
-            List<Vector2[]> _C = new();
-            _C.AddRange(GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f));
-            _C.AddRange(GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f));
-            _C.AddRange(GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f));
-            _C.AddRange(GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f));
-            _C.AddRange(new[] {
-                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)).ToArray(),
-                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)).ToArray(),
-                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)).ToArray(),
-            });
-            C = _C.ToArray();
-
-            List<Vector2[]> _D = new();
-            _D.AddRange(GenerateCircleGeo(new(0.5f, 0.5f), 0, -0.5f, 0.5f, 0.1f));
-            _D.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(0.1f, 1f)).ToArray(),
-                GenerateRectGeo(new(0, 0), new(0.5f, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0, 0.9f), new(0.5f, 1f)).ToArray(),
-            });
-            D = _D.ToArray();
-
-            List<Vector2[]> _E = new();
-            _E.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)).ToArray(),
-                GenerateRectGeo(new(0, 0.9f), new(1, 1)).ToArray(),
-                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
-            });
-            E = _E.ToArray();
-
-            List<Vector2[]> _F = new();
-            _F.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)).ToArray(),
-                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
-            });
-            F = _F.ToArray();
-
-            List<Vector2[]> _G = new();
-            _G.AddRange(GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f));
-            _G.AddRange(GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f));
-            _G.AddRange(GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f));
-            _G.AddRange(GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f));
-            _G.AddRange(new[] {
-                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)).ToArray(),
-                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)).ToArray(),
-                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)).ToArray(),
-                GenerateRectGeo(new(0.90f, 0.50f), new(1.00f, 0.75f)).ToArray(),
-                GenerateRectGeo(new(0.50f, 0.45f), new(1.00f, 0.55f)).ToArray(),
-            });
-            G = _G.ToArray();
-
-            List<Vector2[]> _H = new();
-            _H.AddRange(new[] {
-                GenerateRectGeo(new(0,0), new(0.1f, 1)).ToArray(),
-                GenerateRectGeo(new(0.9f,0), new(1, 1)).ToArray(),
-                GenerateRectGeo(new(0f, 0.45f), new(1.00f, 0.55f)).ToArray(),
-            });
-            H = _H.ToArray();
-
-            List<Vector2[]> _I = new();
-            _I.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0, 0.9f), new(1, 1)).ToArray(),
-                GenerateRectGeo(new(0.45f, 0f), new(0.55f, 1)).ToArray(),
-            });
-            I = _I.ToArray();
-
-            List<Vector2[]> _J = new();
-            _J.AddRange(GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f));
-            _J.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(1, 0.1f)).ToArray(),
-                GenerateRectGeo(new(0.9f, 0), new(1, 0.75f)).ToArray(),
-                GenerateRectGeo(new(0, 0.9f), new(0.75f, 1)).ToArray(),
-            });
-            J = _J.ToArray();
-
-            List<Vector2[]> _K = new();
-            _K.AddRange(new[] {
-                GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
-                GenerateRectGeo(new(0.1f, 0.45f), new(0.55f, 0.55f)).ToArray(),
-                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.02f), 0.1f).ToArray(),
-                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.98f), 0.1f).ToArray(),
-            });
-            K = _K.ToArray();
-
-            L = new Vector2[][] {
+            CharsToLetterDefinitions['A'] = new() {
+                new Vector2[] { new(0.5f, 0), new(0, 1), new(0.1f, 1), new(0.5f, 0.2f) },
+                new Vector2[] { new(0.5f, 0), new(1, 1), new(0.9f, 1), new(0.5f, 0.2f) },
+                new Vector2[] { new(0.25f, 0.5f), new(0.75f, 0.5f), new(0.75f, 0.6f), new(0.25f, 0.6f) }
+            };
+            CharsToLetterDefinitions['B'] = new() {
+                GenerateCircleGeo(new(0.73f, 0.27f), 0.5f, 0.5f, 0.27f, 0.1f),
+                GenerateCircleGeo(new(0.73f, 0.73f), 0.5f, 0.5f, 0.27f, 0.1f),
+                GenerateRectGeo(new(0, 0), new(0.1f, 1f)),
+                GenerateRectGeo(new(0, 0), new(0.73f, 0.1f)),
+                GenerateRectGeo(new(0, 0.45f), new(0.73f, 0.55f)),
+                GenerateRectGeo(new(0, 0.9f), new(0.73f, 1)),
+            };
+            CharsToLetterDefinitions['C'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)),
+                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)),
+                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)),
+            };
+            CharsToLetterDefinitions['D'] = new() {
+                GenerateCircleGeo(new(0.5f, 0.5f), 0, -0.5f, 0.5f, 0.1f),
+                GenerateRectGeo(new(0, 0), new(0.1f, 1f)),
+                GenerateRectGeo(new(0, 0), new(0.5f, 0.1f)),
+                GenerateRectGeo(new(0, 0.9f), new(0.5f, 1f)),
+            };
+            CharsToLetterDefinitions['E'] = new() {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)),
+                GenerateRectGeo(new(0, 0.9f), new(1, 1)),
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)),
+            };
+            CharsToLetterDefinitions['F'] = new() {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)),
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)),
+            };
+            CharsToLetterDefinitions['G'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)),
+                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)),
+                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)),
+                GenerateRectGeo(new(0.90f, 0.50f), new(1.00f, 0.75f)),
+                GenerateRectGeo(new(0.50f, 0.45f), new(1.00f, 0.55f)),
+            };
+            CharsToLetterDefinitions['H'] = new() {
+                GenerateRectGeo(new(0,0), new(0.1f, 1)),
+                GenerateRectGeo(new(0.9f,0), new(1, 1)),
+                GenerateRectGeo(new(0f, 0.45f), new(1.00f, 0.55f)),
+            };
+            CharsToLetterDefinitions['I'] = new() {
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0, 0.9f), new(1, 1)),
+                GenerateRectGeo(new(0.45f, 0f), new(0.55f, 1)),
+            };
+            CharsToLetterDefinitions['J'] = new() {
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0.9f, 0), new(1, 0.75f)),
+                GenerateRectGeo(new(0, 0.9f), new(0.75f, 1)),
+            };
+            CharsToLetterDefinitions['K'] = new() {
+                GenerateRectGeo(new(0, 0), new(0.1f, 1)),
+                GenerateRectGeo(new(0.1f, 0.45f), new(0.55f, 0.55f)),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.02f), 0.1f),
+                GenerateLineGeo(new(0.5f, 0.5f), new(0.85f, 0.98f), 0.1f),
+            };
+            CharsToLetterDefinitions['L'] = new() {
                 GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
                 GenerateRectGeo(new(0.1f, 0.9f), new(1, 1)).ToArray()
             };
-            M = new Vector2[][] {
+            CharsToLetterDefinitions['M'] = new() {
                 GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
                 GenerateRectGeo(new(0.9f, 0), new(1, 1)).ToArray(),
-                GenerateLineGeo(new(0f, 0f), new(0.5f, 0.5f), 0.1f).ToArray(),
-                GenerateLineGeo(new(1, 0f), new(0.5f, 0.5f), 0.1f).ToArray(),
+                GenerateRectGeo(new(0.45f, 0.5f), new(0.55f, 1)),
+                GenerateCircleGeo(new(0, 0.55f), 0.5f, 0.25f, 0.55f, 0.1f),
+                GenerateCircleGeo(new(1, 0.55f), 0.25f, 0.25f, 0.55f, 0.1f)
             };
-            N = new Vector2[][] {
+            CharsToLetterDefinitions['N'] = new() {
                 GenerateRectGeo(new(0, 0), new(0.1f, 1)).ToArray(),
                 GenerateRectGeo(new(0.9f, 0), new(1, 1)).ToArray(),
-                GenerateLineGeo(new(0, 0), new(1, 1), 0.1f).ToArray(),
+                GenerateCircleGeo(new(0, 1), 0.5f, 0.25f, 1, 0.1f),
             };
-            O = GenerateCircleGeo(new(0.5f), 0, 1, 0.5f, 0.1f).ToArray();
-
-            Type letters = typeof(Letters);
-            foreach (FieldInfo info in letters.GetFields()) {
-                if (Alphabet.Contains(info.Name.First())) {
-                    CharsToLetterDefinitions[info.Name.First()] = (Vector2[][])info.GetValue(null);
-                }
-            }
-        }
+            CharsToLetterDefinitions['O'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)),
+                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)),
+                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)),
+                GenerateRectGeo(new(0.90f, 0.25f), new(1.00f, 0.75f)),
+            };
+            CharsToLetterDefinitions['P'] = new() {
+                GenerateRectGeo(new(0,0), new(0.1f, 1)),
+                GenerateRectGeo(new(0, 0), new(0.75f, 0.1f)),
+                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.30f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.9f, 0.25f), new(1, 0.30f)),
+            };
+            CharsToLetterDefinitions['Q'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 1.00f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.50f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0.00f), new(0.75f, 0.10f)),
+                GenerateRectGeo(new(0.25f, 0.90f), new(0.75f, 1.00f)),
+                GenerateRectGeo(new(0.00f, 0.25f), new(0.10f, 0.75f)),
+                GenerateRectGeo(new(0.90f, 0.25f), new(1.00f, 0.75f)),
+                GenerateCircleGeo(new(0.5f, 1), 0.5f, 0.25f, 0.5f, 0.1f),
+                //GenerateLineGeo(new(0.75f, 0.75f), new(0.95f, 0.95f), 0.1f)
+            };
+            CharsToLetterDefinitions['R'] = new() {
+                GenerateRectGeo(new(0,0), new(0.1f, 1)),
+                GenerateRectGeo(new(0, 0), new(0.75f, 0.1f)),
+                GenerateRectGeo(new(0, 0.45f), new(0.75f, 0.55f)),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.30f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.9f, 0.25f), new(1, 0.30f)),
+                GenerateCircleGeo(new(0.75f, 0.70f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.9f, 0.70f), new(1, 1)),
+            };
+            CharsToLetterDefinitions['S'] = new() {
+                GenerateCircleGeo(new(0.25f, 0.25f), 0.25f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.30f), 0.0f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.70f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.75f), 0.75f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.75f, 0.25f), 0.5f, 0.25f, 0.25f, 0.1f),
+                GenerateCircleGeo(new(0.25f, 0.75f), 0.0f, 0.25f, 0.25f, 0.1f),
+                GenerateRectGeo(new(0.25f, 0), new(0.75f, 0.1f)),
+                GenerateRectGeo(new(0.25f, 0.45f), new(0.75f, 0.55f)),
+                GenerateRectGeo(new(0.25f, 0.9f), new(0.75f, 1)),
+                GenerateRectGeo(new(0, 0.20f), new(0.1f, 0.30f)),
+                GenerateRectGeo(new(0.9f, 0.70f), new(1, 0.80f))
+            };
+    }
 
         public static IEnumerable<Vector2[]> GetTextPolygons(string text) {
-            float totalOffset = 0;
+            float xOffset = 0;
+            float yOffset = 0;
             foreach (char c in text) {
+                if(c == '\n') {
+                    xOffset = 0;
+                    yOffset += 1.1f;
+                    continue;
+                }
+
                 if (CharsToLetterDefinitions.ContainsKey(c)) {
-                    foreach (Vector2[] letter in CharsToLetterDefinitions[c]) {
-                        yield return letter.TransformAll(new Vector2(totalOffset, 0)).ToArray();
+                    foreach (var polygon in CharsToLetterDefinitions[c].Polygons) {
+                        yield return polygon.TransformAll(new Vector2(xOffset, yOffset)).ToArray();
                     }
                 }
-                totalOffset += 1.1f;
+
+                xOffset += 1.1f;
             }
         }
-
-        /* "A"
-        0    -        a
-                     /|\
-        0.25 -      / d \
-                   / / \ \
-        0.5  -    g-/---\-h
-                 / i-----j \
-        0.75 -  / /       \ \
-               / /         \ \
-        1    -b-c           e-f */
-        public static Vector2[][] A = new Vector2[][] {
-            new Vector2[] { new(0.5f, 0), new(0, 1), new(0.1f, 1), new(0.5f, 0.2f) },
-            new Vector2[] { new(0.5f, 0), new(1, 1), new(0.9f, 1), new(0.5f, 0.2f) },
-            new Vector2[] { new(0.25f, 0.5f), new(0.75f, 0.5f), new(0.75f, 0.6f), new(0.25f, 0.6f) }
-        };
-        public static Vector2[][] a;
-        public static Vector2[][] B;
-        public static Vector2[][] b;
-        public static Vector2[][] C;
-        public static Vector2[][] c;
-        public static Vector2[][] D;
-        public static Vector2[][] d;
-        public static Vector2[][] E;
-        public static Vector2[][] e;
-        public static Vector2[][] F;
-        public static Vector2[][] f;
-        public static Vector2[][] G;
-        public static Vector2[][] g;
-        public static Vector2[][] H;
-        public static Vector2[][] h;
-        public static Vector2[][] I;
-        public static Vector2[][] i;
-        public static Vector2[][] J;
-        public static Vector2[][] j;
-        public static Vector2[][] K;
-        public static Vector2[][] k;
-        public static Vector2[][] L;
-        public static Vector2[][] l;
-        public static Vector2[][] M;
-        public static Vector2[][] m;
-        public static Vector2[][] N;
-        public static Vector2[][] n;
-        public static Vector2[][] O;
-        public static Vector2[][] o;
-        public static Vector2[][] P;
-        public static Vector2[][] p;
-        public static Vector2[][] Q;
-        public static Vector2[][] q;
-        public static Vector2[][] R;
-        public static Vector2[][] r;
-        public static Vector2[][] S;
-        public static Vector2[][] s;
-        public static Vector2[][] T;
-        public static Vector2[][] t;
-        public static Vector2[][] U;
-        public static Vector2[][] u;
-        public static Vector2[][] V;
-        public static Vector2[][] v;
-        public static Vector2[][] W;
-        public static Vector2[][] w;
-        public static Vector2[][] X;
-        public static Vector2[][] x;
-        public static Vector2[][] Y;
-        public static Vector2[][] y;
-        public static Vector2[][] Z;
-        public static Vector2[][] z;
 
         public static IEnumerable<Vector2> GenerateLineGeo(Vector2 a, Vector2 b, float thickness = 1) {
             float angleBetween = RadiansToTurns((float)Math.Atan2(a.Y - b.Y, a.X - b.X));
@@ -297,8 +257,8 @@ class Test : Scene {
     private void OnRender(double elapsed) {
         Vector3 col = new(0.8f, 0.9f, 0.99f);
 
-        foreach (var poly in Letters.GetTextPolygons("ABCDEFGHIJKLMNO")) {
-            Renderer.PushConvexPolygon(10, col, true, false, 2, poly.ScaleAll(new Vector2(50, 50)).TransformAll(new Vector2(10, 100)).ToArray());
+        foreach (var poly in Letters.GetTextPolygons("AaBbCcDdEeFfGgHhIiJjKkLl\nMmNnOoPpQqRrSsTtUuVvWwXx\nYyZz")) {
+            Renderer.PushConvexPolygon(10, col, true, false, 2, poly.ScaleAll(new Vector2(30, 30)).TransformAll(new Vector2(10, 100)).ToArray());
         }
 
         // draw UI
