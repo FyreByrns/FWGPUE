@@ -80,7 +80,7 @@ class SpriteRenderStage : RenderStage {
         Quad = new();
         Quad.AddBufferObject(1, 3, 3); // vertices
         Quad.AddBufferObject(1, 2, 2); // uvs
-        Quad.AddBufferObject(4, 4, 4, true, 1); // transform
+        Quad.AddBufferObject(4, 4, 4 * 4, true, 1); // transform
         Quad.AddBufferObject(1, 4, 4, true, 1); // atlas UV
 
         Quad.SetBufferData(0, quadVertices);
