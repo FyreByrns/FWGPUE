@@ -236,11 +236,9 @@ class Test : Scene {
                 GenerateRectGeo(new(0.9f, 0f), new(1, 0.80f))
             };
             CharsToLetterDefinitions['Z'] = new() {
-                GenerateLineGeo(new(0.78f, 0.475f), new(0.22f, 0.525f), 0.1f),
-                GenerateRectGeo(new(0, 0), new(0.75f, 0.1f)),
-                GenerateCircleGeo(new(0.75f, 0.25f), 0.5f, 0.47f, 0.25f, 0.1f),
-                GenerateCircleGeo(new(0.25f, 0.75f), 0.0f, 0.47f, 0.25f, 0.1f),
-                GenerateRectGeo(new(0.25f, 0.9f), new(1, 1)),
+                GenerateRectGeo(new(0, 0), new(1, 0.1f)),
+                GenerateRectGeo(new(0, 0.9f), new(1, 1)),
+                GenerateCircleGeo(new(1, 1), 0.25f, 0.25f, 1, 0.1f),
             };
         }
 
