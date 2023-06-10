@@ -47,6 +47,15 @@
 
         /// <summary> Ensure the file pointed to by this <see cref="EngineFileLocation"/> exists. </summary>
         public void EnsureExists() {
+            if(!Directory.Exists(FullPath)) {
+                    try {
+                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FullPath)!);
+                    }
+                    catch (Exception e) {
+                        Log.Error($"error creating directory: {e}");
+                    }
+            }
+
             if (!File.Exists(FullPath)) {
                 File.Create(FullPath).Close();
             }
