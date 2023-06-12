@@ -36,6 +36,8 @@ class RenderManager {
     public static GL Gl { get; private set; }
     public static IWindow? Window { get; private set; }
 
+    public static TextManager TextManager { get; private set; }
+
     public List<RenderStage> RenderStages = new();
 
     public record ToRenderSprite(float x, float y, float z, string name, float scaleX, float scaleY, float rotX, float rotY, float rotZ);
@@ -150,9 +152,23 @@ class RenderManager {
         }
     }
 
+    public record ToRenderText(Vector3 location, Vector2 scale, string font, string text, Vector3 colour);
+    public List<ToRenderText> TextToRender = new();
+    public void PushString(Vector3 location, string font, Vector2 scale, string text, Vector3 colour) {
+        TextToRender.Add(new(location, scale, font, text, colour));
+    }
+
     void OnFrameRender(double elapsed) {
         // request all render objects
         OnRenderObjectsRequired?.Invoke(elapsed);
+
+        // push text
+        foreach(var text in TextToRender) {
+            foreach (var poly in TextManager.GetTextPolygons(text.font, text.text)) {
+                PushConvexPolygon(text.location.Z, text.colour, true, false, 0.1f, poly.ScaleAll(text.scale).TransformAll(text.location.XY()).ToArray());
+            }
+        }
+        TextToRender.Clear();
 
         // render all stages
         RenderStage? previous = null;
@@ -202,6 +218,9 @@ class RenderManager {
         RenderStages.Add(new ClearColourStage());
         RenderStages.Add(new SpriteRenderStage());
         RenderStages.Add(new GeometryRenderStage());
+
+        TextManager = new();
+        TextManager.LoadFont("default");
     }
 
     public void Begin() {

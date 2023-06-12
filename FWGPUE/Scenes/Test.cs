@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Numerics;
-using FWGPUE.Graphics;
 
 namespace FWGPUE.Scenes;
 
@@ -13,14 +12,12 @@ class UIElement {
 }
 
 class Test : Scene {
-    TextManager TextManager = new();
     List<UIElement> UI = new();
     UIElement? Hovered = null;
 
     public override void Load() {
         Load<Test>();
 
-        TextManager.LoadFont("default");
         Renderer.OnRenderObjectsRequired += OnRender;
         MouseMove += OnMouseMove;
 
@@ -45,13 +42,10 @@ class Test : Scene {
         }
     }
 
-
     private void OnRender(double elapsed) {
         Vector3 col = new(0.8f, 0.9f, 0.99f);
 
-        foreach (var poly in TextManager.GetTextPolygons("default", "AaBbCcDdEeFfGgHhIiJjKkLl\nMmNnOoPpQqRrSsTtUuVvWwXx\nYyZz")) {
-            Renderer.PushConvexPolygon(10, col, true, false, 2, poly.ScaleAll(new Vector2(30, 30)).TransformAll(new Vector2(10, 100)).ToArray());
-        }
+        Renderer.PushString(new(100, 100, 10), "default", new(10, 10), "AaBbCcDdEeFfGgHhIiJjKkLl\nMmNnOoPpQqRrSsTtUuVvWwXx\nYyZz", new(1, 0.8f, 0.3f));
 
         // draw UI
         foreach (var element in UI) {
