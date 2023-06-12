@@ -3,7 +3,6 @@ using System.Numerics;
 
 using FWGPUE.Graphics;
 using FWGPUE.Scenes;
-using System.Runtime.InteropServices;
 
 namespace FWGPUE;
 

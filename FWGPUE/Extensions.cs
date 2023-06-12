@@ -36,6 +36,10 @@ public static class Extensions {
         }
     }
 
+    public static Vector2 XY(this Vector3 me) {
+        return new(me.X, me.Y);
+    }
+
     public static void ChangeBy(ref this Vector3 me, Vector3 change) {
         me += change;
     }
