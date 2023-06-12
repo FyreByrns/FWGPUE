@@ -15,10 +15,12 @@
         public string? Name { get; set; }
         /// <summary> Path to the directory containing the file. </summary>
         public virtual string[] Path { get; set; }
-        public string FullPath =>
-            AppDomain.CurrentDomain.BaseDirectory +
+        public string LocalPath =>
             (Path.Length > 0 ? string.Join(System.IO.Path.DirectorySeparatorChar, Path) : "") +
             (Path.Length > 0 ? System.IO.Path.DirectorySeparatorChar : "") + Name;
+        public string FullPath =>
+            AppDomain.CurrentDomain.BaseDirectory +
+            LocalPath;
 
         public bool IsDirectory => File.GetAttributes(FullPath).HasFlag(FileAttributes.Directory);
         public bool IsFile => !IsDirectory;
