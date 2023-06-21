@@ -157,13 +157,17 @@ class RenderManager {
     public void PushString(Vector3 location, string font, Vector2 scale, string text, Vector3 colour) {
         TextToRender.Add(new(location, scale, font, text, colour));
     }
+    public void PushString(Vector3 location, string text, float scale = 8, Vector3? colour = null) {
+        float aspectRatio = TextManager.GetAspectRatio(TextManager.DefaultFont);
+        PushString(location, TextManager.DefaultFont, new(scale, aspectRatio * scale), text, colour ?? new(1, 1, 1));
+    }
 
     void OnFrameRender(double elapsed) {
         // request all render objects
         OnRenderObjectsRequired?.Invoke(elapsed);
 
         // push text
-        foreach(var text in TextToRender) {
+        foreach (var text in TextToRender) {
             foreach (var poly in TextManager.GetTextPolygons(text.font, text.text)) {
                 PushConvexPolygon(text.location.Z, text.colour, true, false, 0.1f, poly.ScaleAll(text.scale).TransformAll(text.location.XY()).ToArray());
             }

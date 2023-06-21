@@ -45,7 +45,7 @@ class Test : Scene {
     private void OnRender(double elapsed) {
         Vector3 col = new(0.8f, 0.9f, 0.99f);
 
-        Renderer.PushString(new(100, 100, 10), "default", new(10, 10), "AaBbCcDdEeFfGgHhIiJjKkLl\nMmNnOoPpQqRrSsTtUuVvWwXx\nYyZz", new(1, 0.8f, 0.3f));
+        Renderer.PushString(new(100, 100, 0), "AaBbCcDdEeFfGgHhIiJjKkLl\nMmNnOoPpQqRrSsTtUuVvWwXx\nYyZz");
 
         // draw UI
         foreach (var element in UI) {
