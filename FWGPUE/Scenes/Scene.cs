@@ -4,6 +4,7 @@ using static FWGPUE.IO.DataMarkupFile;
 using FWGPUE.Graphics;
 using RectpackSharp;
 using FWGPUE.Nodes;
+using FWGPUE.UI;
 
 namespace FWGPUE.Scenes;
 
@@ -20,6 +21,8 @@ abstract class Scene {
     public SpriteAtlasFile? Atlas { get; protected set; }
 
     public NodeCollection Nodes { get; } = new();
+
+    public List<UIElement> UI { get; } = new();
 
     public T? GetGlobal<T>(string globalName) {
         if (Globals!.TryGetToken(globalName, out var token)) {

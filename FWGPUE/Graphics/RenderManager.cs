@@ -4,6 +4,8 @@ using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using System.Numerics;
+using FWGPUE.Scenes;
+using FWGPUE.UI;
 
 namespace FWGPUE.Graphics;
 

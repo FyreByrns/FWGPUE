@@ -46,7 +46,7 @@ static class Engine {
     static void Load() {
         Input.Init();
 
-        ChangeToScene(new Test());
+        ChangeToScene(new MainMenu());
     }
 
     static void MainLoop() {

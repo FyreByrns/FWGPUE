@@ -1,4 +1,7 @@
-﻿global using Key = Silk.NET.Input.Key;
+﻿// aliases
+global using Colour = System.Numerics.Vector3;
+
+global using Key = Silk.NET.Input.Key;
 global using MouseButton = Silk.NET.Input.MouseButton;
 global using FileType = FWGPUE.IO.EngineFileLocation.FileType;
 
