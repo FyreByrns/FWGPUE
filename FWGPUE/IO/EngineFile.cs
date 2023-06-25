@@ -1,7 +1,7 @@
 ﻿namespace FWGPUE.IO;
 
 abstract class EngineFile {
-    public EngineFileLocation? Location { get; }
+    public EngineFileLocation? Location { get; set; }
     public bool Loaded { get; protected set; } = false;
 
     public virtual void Save(bool overwrite = true) {

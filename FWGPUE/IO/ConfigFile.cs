@@ -39,6 +39,10 @@ namespace FWGPUE.IO {
         public int TickRate { get; set; } = 120;
 
         [ConfigValue]
+        [Comment("frames per second")]
+        public int FPS { get; set; } = 60;
+
+        [ConfigValue]
         [Comment("log level (Inane = -1, All = 0, Warn = 1, Error = 2, None = 3)")]
         public Log.Severity LogSeverity { get; set; } = Log.Severity.All;
         #endregion values

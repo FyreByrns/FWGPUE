@@ -1,69 +1,116 @@
-﻿using FontStashSharp;
-using FWGPUE.Nodes;
+﻿using System.Reflection;
 using System.Numerics;
+using FWGPUE.UI;
+using FWGPUE.Nodes;
 
 namespace FWGPUE.Scenes;
 
 class Test : Scene {
-    Node2D MouseFollowNode;
+    EntityNode player = new();
 
     public override void Load() {
         Load<Test>();
 
-        MouseFollowNode = Nodes.Root.AddChild(new SpriteNode() {
-            Sprite = "otherSquare",
-            Scale = 2
-        });
+        Renderer.OnRenderObjectsRequired += OnRender;
+        MouseMove += OnMouseMove;
 
-        MouseFollowNode.AddChild(new SpriteNode() {
-            Offset = new(100, 10),
-            Sprite = "square",
-            Scale = 3,
-        }).AddChild(new SpriteNode() {
-            Offset = new(50, 10),
-            Sprite = "otherSquare"
-        }).AddChild(new SpriteNode() {
-            Offset = new(60, 0),
-            Sprite = "square"
-        });
+        Nodes.AddChild(player, NodeFilters.ChildOf(Nodes.Root))
+            .AddChild(new EntityNode() {
+                Offset = new(10, 0)
+            })
+            .AddChild(new PolygonNode() { 
+                Offset = new(40, 0),
+                Polygons = new PolygonSet(TextManager.GetTextPolygons("default", "A").ScaleAll(new(40, 40)).ToArray())
+            });
 
-        for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 10; y++) {
-                for (int i = 0; i < 10; i++) {
-                    Nodes.AddChild(new ParallaxSpriteNode() {
-                        Offset = new(x * 50, y * 50),
-                        Scale = 2,
-                        //TargetWidthPercentage = 0.06f,
-                        Z = i,
-                        Sprite = "square"
-                    }, NodeFilters.ChildOf(Nodes.Root));
-                }
-            }
-        }
+        Nodes.AddChild(new EntityNode() { Offset = new(100, 100) }, NodeFilters.ChildOf(Nodes.Root))
+            .AddChild(new EntityNode() {
+                Offset = new(10, 50)
+            });
     }
 
     public override void Tick() {
         base.Tick();
 
-        MouseFollowNode.Offset = Camera.ScreenToWorld(MousePosition());
-        MouseFollowNode.Rotation = TotalTimeInScene / 10f;
-        MouseFollowNode.Children.First().Rotation = TotalTimeInScene / 5f;
+        // input
+        Vector2 direction = Vector2.Zero;
+        if (KeyDown(Key.W)) { direction.Y += -1; }
+        if (KeyDown(Key.S)) { direction.Y += +1; }
+        if (KeyDown(Key.A)) { direction.X += -1; }
+        if (KeyDown(Key.D)) { direction.X += +1; }
+        player.Velocity = direction * 300f * TickTime;
 
-        if (KeyDown(Key.Up)) { Camera!.Position.ChangeBy(new(0, -50 * TickTime, 0)); }
-        if (KeyDown(Key.Down)) { Camera!.Position.ChangeBy(new(0, 50 * TickTime, 0)); }
-        if (KeyDown(Key.Left)) { Camera!.Position.ChangeBy(new(-50 * TickTime, 0, 0)); }
-        if (KeyDown(Key.Right)) { Camera!.Position.ChangeBy(new(50 * TickTime, 0, 0)); }
+        if (MouseButtonDown(MouseButton.Left)) {
+            player.Heading = Camera.ScreenToWorld(MousePosition());
+            player.Rotation = player.Offset.AngleTo(player.Heading);
+        }
     }
 
-    public override void Render() {
-        base.Render();
+    void OnRender(double elapsed) {
+        Camera.Position = new(player.RelativeOffset() - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
 
-        DrawCircle(new Vector3(1, 1, 1), MousePosition(), 4);
-        DrawCircle(new Vector3(1, 0, 0), new(100, 100), 10);
-
-        //Nodes.DrawDebugNodes();
+        Nodes.DrawNodes();
         Nodes.DrawDebugConnections();
     }
 
+    void OnMouseMove(Vector2 oldMouse, Vector2 newMouse) {
+    }
+
     public override void Unload() { }
+}
+
+class EntityNode : Node2D {
+    public Vector2 Heading = new(10, 0);
+    public Vector2 Velocity;
+
+    public Weapon Weapon;
+
+    public override void Tick() {
+        base.Tick();
+
+        Velocity /= 1.1f;
+        Offset += Velocity;
+    }
+
+    public override void Draw() {
+        base.Draw();
+
+        Renderer.PushCircle(RelativeOffset(), 10, 0, Vector3.One);
+    }
+}
+
+class PolygonNode : Node2D {
+    public PolygonSet Polygons;
+
+    public override void Draw() {
+        base.Draw();
+
+        if (Polygons is null) {
+            return;
+        }
+
+        foreach (List<Vector2> vertexArray in Polygons.Cast<List<Vector2>>()) {
+            Renderer.PushConvexPolygon(
+                1,
+                new Colour(1f, 0.3f, 1f),
+                false,
+                true,
+                1,
+                vertexArray
+                    .RotateAll(new(0, 0), RelativeRotation())
+                    .TransformAll(RelativeOffset())
+                    .ToArray());
+        }
+    }
+}
+
+class Weapon {
+    // the current hitbox of the weapon is stored as a set of polygons
+    public PolygonSet Hitbox;
+    // different movements of the weapon are represented as different hitboxes
+    public PolygonSet[] Hitboxes;
+    // the current index into the hitbox array
+    public int AttackStageCounter = 0;
+
+    public virtual void TickHitbox() { }
 }

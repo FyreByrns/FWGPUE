@@ -15,10 +15,12 @@
         public string? Name { get; set; }
         /// <summary> Path to the directory containing the file. </summary>
         public virtual string[] Path { get; set; }
-        public string FullPath =>
-            AppDomain.CurrentDomain.BaseDirectory +
+        public string LocalPath =>
             (Path.Length > 0 ? string.Join(System.IO.Path.DirectorySeparatorChar, Path) : "") +
             (Path.Length > 0 ? System.IO.Path.DirectorySeparatorChar : "") + Name;
+        public string FullPath =>
+            AppDomain.CurrentDomain.BaseDirectory +
+            LocalPath;
 
         public bool IsDirectory => File.GetAttributes(FullPath).HasFlag(FileAttributes.Directory);
         public bool IsFile => !IsDirectory;
@@ -47,6 +49,15 @@
 
         /// <summary> Ensure the file pointed to by this <see cref="EngineFileLocation"/> exists. </summary>
         public void EnsureExists() {
+            if(!Directory.Exists(FullPath)) {
+                    try {
+                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FullPath)!);
+                    }
+                    catch (Exception e) {
+                        Log.Error($"error creating directory: {e}");
+                    }
+            }
+
             if (!File.Exists(FullPath)) {
                 File.Create(FullPath).Close();
             }

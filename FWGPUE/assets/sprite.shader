@@ -7,7 +7,7 @@ layout(location = 2) in mat4 vTransform_i;
 // |              3
 // |			  4
 // '------------- 5 
-layout(location = 6) in vec4 vUv_i;
+layout(location = 6) in vec4 vUv_i; // coordinates of texture in atlas
 
 uniform mat4 uProjection;
 uniform mat4 uView;
@@ -40,5 +40,5 @@ in vec2 fUv;
 out vec4 FragColor;
 
 void main() {
-	FragColor = texture(uTextureAtlas, fUv);
+	FragColor = texture(uTextureAtlas, fUv);// +vec4(1.0, 1.0, 1.0, 1.0);
 }

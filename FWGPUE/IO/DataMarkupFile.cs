@@ -24,7 +24,7 @@ class DataMarkupFile : EngineFile {
         public TT Type { get; set; }
         public string? Name { get; set; }
         public string? Value { get; set; }
-        public List<string> Values { get; } = new();
+        public List<string> Values { get; set; } = new();
 
         public InternalToken() { }
         public InternalToken(string value) {
@@ -127,7 +127,7 @@ class DataMarkupFile : EngineFile {
             return TT.None;
         }
     }
-    InternalToken[]? Tokens { get; set; }
+    List<InternalToken> Tokens { get; set; } = new();
     #endregion parsing
 
     public record Token(string Name, TokenContents Contents);
@@ -161,6 +161,22 @@ class DataMarkupFile : EngineFile {
         return false;
     }
 
+    public int AddToken(string name, string value) {
+        Tokens.Add(new() { Type = TT.Value, Name = name, Value = value });
+        return Tokens.Count - 1;
+    }
+    public int AddToken(string name, string[] values) {
+        Tokens.Add(new() { Type = TT.Array, Name = name, Values = values.ToList() });
+        return Tokens.Count - 1;
+    }
+    public int AddList(string name) {
+        Tokens.Add(new() { Type = TT.Array, Name = name });
+        return Tokens.Count - 1;
+    }
+    public void ListAdd(int index, string item) {
+        Tokens[index].Values.Add(item);
+    }
+
     #region save / load
     protected override void ReadData(byte[] data) {
         // parse data to an ascii string
@@ -176,7 +192,7 @@ class DataMarkupFile : EngineFile {
             tokens.Enqueue(current);
         }
 
-        Tokens = TokenHelper.Collapse(tokens).ToArray();
+        Tokens = TokenHelper.Collapse(tokens).ToList();
     }
     protected override byte[] SaveData() {
         List<byte> data = new();
