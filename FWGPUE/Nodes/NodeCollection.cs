@@ -1,6 +1,4 @@
-﻿using FWGPUE.IO;
-
-namespace FWGPUE.Nodes;
+﻿namespace FWGPUE.Nodes;
 
 delegate bool NodeFilter(Node2D node, object data);
 delegate Node2D? NodeTransformer(Node2D node, object data);
@@ -85,7 +83,11 @@ class NodeCollection {
     /// Draw connections between nodes.
     /// </summary>
     public void DrawDebugConnections() {
-
+        foreach (Node2D node in GetNodes(NodeFilters.Visible).Reverse()) {
+            if(node.Parent != null) {
+                Renderer.PushLine(node.RelativeOffset(), node.Parent.RelativeOffset(), 1, System.Numerics.Vector3.One);
+            }
+        }
     }
     public void DrawDebugNodes() {
 

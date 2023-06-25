@@ -3,6 +3,13 @@
 namespace FWGPUE;
 
 public static class Extensions {
+    public static float AngleTo(this Vector2 me, Vector2 other) {
+        float dx = other.X - me.X;
+        float dy = other.Y - me.Y;
+
+        return RadiansToTurns(MathF.Atan2(dy, dx));
+    }
+
     /// <summary>
     /// Get the Vector2 a distance away from this Vector2 at a given angle.
     /// </summary>
@@ -25,6 +32,16 @@ public static class Extensions {
             yield return v + transform;
         }
     }
+    public static IEnumerable<Vector2> RotateAll(this IEnumerable<Vector2> me, Vector2 origin, float angle) {
+        foreach(Vector2 v in me) {
+            float sin = MathF.Sin(TurnsToRadians(angle));
+            float cos = MathF.Cos(TurnsToRadians(angle));
+
+            Vector2 working = v - origin;
+            yield return origin + new Vector2(working.X * cos - working.Y * sin, working.X*sin+working.Y*cos);
+        }
+    }
+
     public static IEnumerable<Vector2[]> ScaleAll(this IEnumerable<Vector2[]> me, Vector2 scale) {
         foreach(Vector2[] v in me) {
             yield return v.ScaleAll(scale).ToArray();
