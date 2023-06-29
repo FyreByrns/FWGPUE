@@ -2,6 +2,7 @@
 using System.Numerics;
 using FWGPUE.UI;
 using FWGPUE.Nodes;
+using FWGPUE.Graphics;
 
 namespace FWGPUE.Scenes;
 
@@ -20,8 +21,19 @@ class Test : Scene {
             })
             .AddChild(new PolygonNode() { 
                 LocalOffset = new(40, 0),
-                Polygons = new PolygonSet(TextManager.GetTextPolygons("default", "A").ToArray()),
+                Polygons = new PolygonSet(RenderManager.TextManager.GetTextPolygons("default", "A").ToArray()),
                 LocalScale = new(15, 15)
+            })
+            .AddSibling(new ImageNode() { 
+                Image = "square",
+                LocalOffset = new(30, 10),
+                LocalScale = new(3, 3)
+            })
+            .AddSibling(new ImageNode() { 
+                Image = "square",
+                LocalOffset = new(-10, 5),
+                LocalScale = new(1.5f, 2),
+                LocalRotation = 0.2f
             });
 
         Nodes.AddChild(new EntityNode() { LocalOffset = new(100, 100) }, NodeFilters.ChildOf(Nodes.Root))
@@ -58,52 +70,6 @@ class Test : Scene {
     }
 
     public override void Unload() { }
-}
-
-class EntityNode : Node2D {
-    public Vector2 Heading = new(10, 0);
-    public Vector2 Velocity;
-
-    public Weapon Weapon;
-
-    public override void Tick() {
-        base.Tick();
-
-        Velocity /= 1.1f;
-        LocalOffset += Velocity;
-    }
-
-    public override void Draw() {
-        base.Draw();
-
-        Renderer.PushCircle(Offset, 10, Z, Vector3.One);
-    }
-}
-
-class PolygonNode : Node2D {
-    public PolygonSet Polygons;
-
-    public override void Draw() {
-        base.Draw();
-
-        if (Polygons is null) {
-            return;
-        }
-
-        foreach (List<Vector2> vertexArray in Polygons.Cast<List<Vector2>>()) {
-            Renderer.PushConvexPolygon(
-                Z,
-                new Colour(1f, 0.3f, 1f),
-                false,
-                true,
-                1,
-                vertexArray
-                    .RotateAll(new(0, 0), Rotation)
-                    .ScaleAll(Scale)
-                    .TransformAll(Offset)
-                    .ToArray());
-        }
-    }
 }
 
 class Weapon {
