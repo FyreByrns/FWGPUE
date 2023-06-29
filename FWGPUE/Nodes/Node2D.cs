@@ -11,16 +11,17 @@ class Node2D {
     public Node2D? Parent { get; protected set; }
     public bool IsBase => Parent is null;
 
-    public Vector2 Offset;
-    public float Rotation;
+    // local attributes
+    public Vector2 LocalOffset;
+    public float LocalZ;
+    public Vector2 LocalScale = Vector2.One;
+    public float LocalRotation;
 
-    public float RelativeRotation() {
-        float rot = 0;
-        foreach (Node2D node in NodesToThisFromBase()) {
-            rot += node.Rotation;
-        }
-        return rot;
-    }
+    // attributes /relative to all preceding nodes/
+    public Vector2 Offset => RelativeOffset();
+    public float Z => RelativeZ();
+    public Vector2 Scale => RelativeScale();
+    public float Rotation => RelativeRotation();
 
     /// <summary>
     /// Get transform relative to the base node.
@@ -34,18 +35,41 @@ class Node2D {
             float cos = (float)Math.Cos(TurnsToRadians(rotation));
             float sin = (float)Math.Sin(TurnsToRadians(rotation));
 
-            float dx = node.Offset.X;
-            float dy = node.Offset.Y;
+            float dx = node.LocalOffset.X;
+            float dy = node.LocalOffset.Y;
 
             float x = cos * dx - sin * dy;
             float y = sin * dx + cos * dy;
 
             offset.X += x;
             offset.Y += y;
-            rotation += node.Rotation;
+            rotation += node.LocalRotation;
         }
 
         return offset;
+    }
+    public float RelativeZ() {
+        float result = 0;
+        foreach (Node2D node in NodesToThisFromBase()) {
+            result += node.LocalZ;
+        }
+
+        return result;
+    }
+    public Vector2 RelativeScale() {
+        Vector2 result = Vector2.One;
+        foreach (Node2D node in NodesToThisFromBase()) {
+            result *= node.LocalScale;
+        }
+
+        return result;
+    }
+    public float RelativeRotation() {
+        float rot = 0;
+        foreach (Node2D node in NodesToThisFromBase()) {
+            rot += node.LocalRotation;
+        }
+        return rot;
     }
 
     public HashSet<Node2D> Children { get; } = new();

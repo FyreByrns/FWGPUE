@@ -16,16 +16,17 @@ class Test : Scene {
 
         Nodes.AddChild(player, NodeFilters.ChildOf(Nodes.Root))
             .AddChild(new EntityNode() {
-                Offset = new(10, 0)
+                LocalOffset = new(10, 0)
             })
             .AddChild(new PolygonNode() { 
-                Offset = new(40, 0),
-                Polygons = new PolygonSet(TextManager.GetTextPolygons("default", "A").ScaleAll(new(40, 40)).ToArray())
+                LocalOffset = new(40, 0),
+                Polygons = new PolygonSet(TextManager.GetTextPolygons("default", "A").ToArray()),
+                LocalScale = new(15, 15)
             });
 
-        Nodes.AddChild(new EntityNode() { Offset = new(100, 100) }, NodeFilters.ChildOf(Nodes.Root))
+        Nodes.AddChild(new EntityNode() { LocalOffset = new(100, 100) }, NodeFilters.ChildOf(Nodes.Root))
             .AddChild(new EntityNode() {
-                Offset = new(10, 50)
+                LocalOffset = new(10, 50)
             });
     }
 
@@ -42,12 +43,12 @@ class Test : Scene {
 
         if (MouseButtonDown(MouseButton.Left)) {
             player.Heading = Camera.ScreenToWorld(MousePosition());
-            player.Rotation = player.Offset.AngleTo(player.Heading);
+            player.LocalRotation = player.LocalOffset.AngleTo(player.Heading);
         }
     }
 
     void OnRender(double elapsed) {
-        Camera.Position = new(player.RelativeOffset() - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
+        Camera.Position = new(player.Offset - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
 
         Nodes.DrawNodes();
         Nodes.DrawDebugConnections();
@@ -69,13 +70,13 @@ class EntityNode : Node2D {
         base.Tick();
 
         Velocity /= 1.1f;
-        Offset += Velocity;
+        LocalOffset += Velocity;
     }
 
     public override void Draw() {
         base.Draw();
 
-        Renderer.PushCircle(RelativeOffset(), 10, 0, Vector3.One);
+        Renderer.PushCircle(Offset, 10, Z, Vector3.One);
     }
 }
 
@@ -91,14 +92,15 @@ class PolygonNode : Node2D {
 
         foreach (List<Vector2> vertexArray in Polygons.Cast<List<Vector2>>()) {
             Renderer.PushConvexPolygon(
-                1,
+                Z,
                 new Colour(1f, 0.3f, 1f),
                 false,
                 true,
                 1,
                 vertexArray
-                    .RotateAll(new(0, 0), RelativeRotation())
-                    .TransformAll(RelativeOffset())
+                    .RotateAll(new(0, 0), Rotation)
+                    .ScaleAll(Scale)
+                    .TransformAll(Offset)
                     .ToArray());
         }
     }

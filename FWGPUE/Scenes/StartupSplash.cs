@@ -19,7 +19,7 @@ class StartupSplash : Scene {
     public override void Tick() {
         base.Tick();
 
-        splashArtNode.Offset = (System.Numerics.Vector2)(Window!.Size / 2);
+        splashArtNode.LocalOffset = (System.Numerics.Vector2)(Window!.Size / 2);
 
         // if total time in scene is greater than the amount of time the scene should be shown .. 
         if (KeyPressed(Space) || TotalTimeInScene > ShowTime) {
