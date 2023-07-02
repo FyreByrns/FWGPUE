@@ -5,8 +5,38 @@ using System.Numerics;
 namespace FWGPUE;
 
 static class Input {
+    public delegate void InputFireEventHandler(string input);
+    public static event InputFireEventHandler InputEventFired;
+
     public delegate void MouseMoveEventHandler(Vector2 oldMouse, Vector2 newMouse);
     public static event MouseMoveEventHandler MouseMove;
+
+    public class Binding {
+        public string Name;
+
+        public void Fire() {
+            InputEventFired?.Invoke(Name);
+        }
+
+        public List<Func<bool>> Conditions = new();
+    }
+    public static List<Binding> RegisteredBindings = new();
+    public static bool BindingExists(string name) {
+        return RegisteredBindings.Where(x => x.Name == name).Any();
+    }
+    public static Binding GetBinding(string name) {
+        return RegisteredBindings.Where(x => x.Name == name).First();
+    }
+
+    public static void Bind(string name, Func<bool> condition) {
+        if (!BindingExists(name)) {
+            RegisteredBindings.Add(new() {
+                Name = name
+            });
+        }
+
+        GetBinding(name).Conditions.Add(condition);
+    }
 
     public static IInputContext? InputContext { get; set; }
 
@@ -69,10 +99,23 @@ static class Input {
     }
     public static void UpdateMousePosition() {
         Vector2 currentMouse = MousePosition();
-        if(currentMouse != LastMouse) {
+        if (currentMouse != LastMouse) {
             MouseMove?.Invoke(LastMouse, currentMouse);
         }
         LastMouse = currentMouse;
+    }
+
+    /// <summary>
+    /// Fire named inputs if required conditions are met.
+    /// </summary>
+    public static void FireInputEvents() {
+        foreach (Binding b in RegisteredBindings) {
+            foreach (Func<bool> condition in b.Conditions) {
+                if (condition()) {
+                    b.Fire();
+                }
+            }
+        }
     }
 
     public static bool KeyPressed(Key key, int framesSincePress = 1) {
@@ -116,13 +159,15 @@ static class Input {
         Log.Inane($"{button} down");
         MouseStates![(int)button] = true;
     }
-    
+
     public static void Update(float elapsed) {
         UpdateMouseFrames();
         UpdateMouseTimers((float)elapsed);
         UpdateKeyFrames();
         UpdateKeyTimers((float)elapsed);
         UpdateMousePosition();
+
+        FireInputEvents();
     }
 
     public static void Init() {
@@ -145,5 +190,11 @@ static class Input {
         MouseStates = new bool[mouseCount];
         MouseFrames = new int[mouseCount];
         MouseTimers = new float[mouseCount];
+
+        Bind("up", () => { return KeyDown(Key.W); });
+        Bind("down", () => { return KeyDown(Key.S); });
+        Bind("left", () => { return KeyDown(Key.A); });
+        Bind("right", () => { return KeyDown(Key.D); });
+        Bind("attack", () => { return MouseButtonPressed(MouseButton.Left); });
     }
 }

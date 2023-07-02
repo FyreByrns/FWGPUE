@@ -41,6 +41,13 @@ public static class Extensions {
             yield return origin + new Vector2(working.X * cos - working.Y * sin, working.X*sin+working.Y*cos);
         }
     }
+    public static Vector2 Rotate(this Vector2 me, Vector2 origin, float angle) {
+        float sin = MathF.Sin(TurnsToRadians(angle));
+        float cos = MathF.Cos(TurnsToRadians(angle));
+
+        Vector2 working = me - origin;
+        return origin + new Vector2(working.X * cos - working.Y * sin, working.X * sin + working.Y * cos);
+    }
 
     public static IEnumerable<Vector2[]> ScaleAll(this IEnumerable<Vector2[]> me, Vector2 scale) {
         foreach(Vector2[] v in me) {

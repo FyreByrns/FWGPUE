@@ -38,7 +38,7 @@ class RenderManager {
     public static GL Gl { get; private set; }
     public static IWindow? Window { get; private set; }
 
-    public static TextManager TextManager { get; private set; }
+    public static TextManager Text { get; private set; }
 
     public List<RenderStage> RenderStages = new();
 
@@ -160,7 +160,7 @@ class RenderManager {
         TextToRender.Add(new(location, scale, font, text, colour));
     }
     public void PushString(Vector3 location, string text, float scale = 8, Vector3? colour = null) {
-        float aspectRatio = TextManager.GetAspectRatio(TextManager.DefaultFont);
+        float aspectRatio = Text.GetAspectRatio(TextManager.DefaultFont);
         PushString(location, TextManager.DefaultFont, new(scale, aspectRatio * scale), text, colour ?? new(1, 1, 1));
     }
 
@@ -170,7 +170,7 @@ class RenderManager {
 
         // push text
         foreach (var text in TextToRender) {
-            foreach (var poly in TextManager.GetTextPolygons(text.font, text.text)) {
+            foreach (var poly in Text.GetTextPolygons(text.font, text.text)) {
                 PushConvexPolygon(text.location.Z, text.colour, true, false, 0.1f, poly.ScaleAll(text.scale).TransformAll(text.location.XY()).ToArray());
             }
         }
@@ -225,8 +225,8 @@ class RenderManager {
         RenderStages.Add(new SpriteRenderStage());
         RenderStages.Add(new GeometryRenderStage());
 
-        TextManager = new();
-        TextManager.LoadFont("default");
+        Text = new();
+        Text.LoadFont("default");
     }
 
     public void Begin() {
