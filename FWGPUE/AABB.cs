@@ -23,7 +23,7 @@ class AABB {
             return TopLeft.Y;
         }
         set {
-            TopLeft = new(TopLeft.X, Y);
+            TopLeft = new(TopLeft.X, value);
         }
     }
     public float Left {
