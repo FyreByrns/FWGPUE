@@ -22,25 +22,25 @@ class Test : Scene {
         player.Weapon = new() {
             Hitboxes = new Hitbox[] {
                         new(){
-                            (new(00, -10), 1),
-                            (new(20, -10), 2),
-                            (new(40, -10), 3),
-                            (new(60, -10), 2),
-                            (new(80, -10), 1),
+                            new(new(00, -10), 1),
+                            new(new(20, -10), 2),
+                            new(new(40, -10), 3),
+                            new(new(60, -10), 2),
+                            new(new(80, -10), 1),
                         },
                         new(){
-                            (new(00, 0), 1),
-                            (new(20, 0), 2),
-                            (new(40, 0), 3),
-                            (new(60, 0), 2),
-                            (new(80, 0), 1),
+                            new(new(00, 0), 1),
+                            new(new(20, 0), 2),
+                            new(new(40, 0), 3),
+                            new(new(60, 0), 2),
+                            new(new(80, 0), 1),
                         },
                         new(){
-                            (new(00, +10), 1),
-                            (new(20, +10), 2),
-                            (new(40, +10), 3),
-                            (new(60, +10), 2),
-                            (new(80, +10), 1),
+                            new(new(00, +10), 1),
+                            new(new(20, +10), 2),
+                            new(new(40, +10), 3),
+                            new(new(60, +10), 2),
+                            new(new(80, +10), 1),
                         },
                     },
             AttackSpeed = 0.02f
@@ -109,14 +109,24 @@ class Test : Scene {
     public override void Unload() { }
 }
 
+class Circle {
+    public Vector2 position;
+    public float radius;
+
+    public Circle(Vector2 position, float radius) {
+        this.position = position;
+        this.radius = radius;
+    }
+}
+
 /// <summary>
 /// Used to test intersection.
 /// <para> Currently just a set of circles. </para>
 /// </summary>
-class Hitbox : IEnumerable<(Vector2 position, float radius)> {
-    public List<(Vector2 position, float radius)> Circles = new();
+class Hitbox : IEnumerable<Circle> {
+    public List<Circle> Circles = new();
 
-    public void Add((Vector2 position, float radius) circle) {
+    public void Add(Circle circle) {
         Circles.Add(circle);
     }
 
@@ -137,8 +147,8 @@ class Hitbox : IEnumerable<(Vector2 position, float radius)> {
     IEnumerator IEnumerable.GetEnumerator() {
         return ((IEnumerable)Circles).GetEnumerator();
     }
-    public IEnumerator<(Vector2 position, float radius)> GetEnumerator() {
-        return ((IEnumerable<(Vector2 position, float radius)>)Circles).GetEnumerator();
+    public IEnumerator<Circle> GetEnumerator() {
+        return ((IEnumerable<Circle>)Circles).GetEnumerator();
     }
     #endregion ienumerable
 }
