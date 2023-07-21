@@ -82,7 +82,7 @@ class NodeCollection {
         // clear nodegrid
         Grid.Clear();
         // register all nodes in the grid
-        foreach(Node2D node in nodes) {
+        foreach (Node2D node in nodes) {
             Grid.RegisterPosition(node, node.Offset);
         }
 
@@ -92,7 +92,9 @@ class NodeCollection {
     }
 
     public void DrawNodes() {
-        foreach (Node2D node in GetNodes(NodeFilters.Visible).Reverse()) {
+        AABB screen = new(Camera.ScreenToWorld(new(0, 0)), Camera.ScreenToWorld(new(Config.ScreenWidth, Config.ScreenHeight)));
+
+        foreach (Node2D node in Grid.GetNodesInArea(screen).OrderByDescending(x => x.Z)) {
             node.Draw();
         }
     }
