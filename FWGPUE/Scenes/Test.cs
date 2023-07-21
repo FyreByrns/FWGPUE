@@ -97,6 +97,19 @@ class Test : Scene {
     void OnRender(double elapsed) {
         Camera.Position = new(player.Offset - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
 
+        foreach (NodeGridCoordinates ngc in Nodes.Grid.Grid.Keys) {
+            Vector2 topLeft = new Vector2(ngc.X, ngc.Y) * NodeGrid.GridSize;
+            Vector2 bottomRight = new Vector2(ngc.X + 1, ngc.Y + 1) * NodeGrid.GridSize;
+
+            Renderer.PushRect(topLeft, bottomRight, 10, Colour.Zero, 1, Colour.One, false);
+        }
+
+        int searchRadius = 80;
+        Renderer.PushCircle(player.Offset, searchRadius, 10, new(0.2f, 0.1f, 1f), false);
+        foreach(var node in Nodes.Grid.GetNodesInCircle(new(player.Offset, searchRadius))) {
+            Renderer.PushCircle(node.Offset, 25, 10, new(1, 0, 0.2f), false);
+        }
+
         Nodes.DrawNodes();
         //Nodes.DrawDebugConnections();
     }
@@ -107,16 +120,6 @@ class Test : Scene {
     }
 
     public override void Unload() { }
-}
-
-class Circle {
-    public Vector2 position;
-    public float radius;
-
-    public Circle(Vector2 position, float radius) {
-        this.position = position;
-        this.radius = radius;
-    }
 }
 
 /// <summary>
