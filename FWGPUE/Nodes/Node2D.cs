@@ -12,16 +12,89 @@ class Node2D {
     public bool IsBase => Parent is null;
 
     // local attributes
-    public Vector2 LocalOffset;
-    public float LocalZ;
-    public Vector2 LocalScale = Vector2.One;
-    public float LocalRotation;
+    Vector2 _localOffset;
+    float _localZ;
+    Vector2 _localScale = Vector2.One;
+    float _localRotation;
+
+    public Vector2 LocalOffset {
+        get {
+            return _localOffset;
+        }
+        set {
+            _localOffset = value;
+            CacheReloadNeeded = true;
+        }
+    }
+    public float LocalZ {
+        get {
+            return _localZ;
+        }
+        set {
+            _localZ = value;
+            CacheReloadNeeded = true;
+        }
+    }
+    public Vector2 LocalScale {
+        get {
+            return _localScale;
+        }
+        set {
+            _localScale = value;
+            CacheReloadNeeded = true;
+        }
+    }
+    public float LocalRotation {
+        get {
+            return _localRotation;
+        }
+        set {
+            _localRotation = value;
+            CacheReloadNeeded = true;
+        }
+    }
 
     // attributes /relative to all preceding nodes/
-    public Vector2 Offset => RelativeOffset();
-    public float Z => RelativeZ();
-    public Vector2 Scale => RelativeScale();
-    public float Rotation => RelativeRotation();
+    public bool CacheReloadNeeded { get; protected set; } = true;
+
+    Vector2 _cachedOffset = Vector2.Zero;
+    float _cachedZ = 0;
+    Vector2 _cachedScale = Vector2.One;
+    float _cachedRotation = 0;
+
+    public Vector2 Offset {
+        get {
+            ReloadCacheIfNeeded();
+            return _cachedOffset;
+        }
+    }
+    public float Z {
+        get {
+            ReloadCacheIfNeeded();
+            return _cachedZ;
+        }
+    }
+    public Vector2 Scale {
+        get {
+            ReloadCacheIfNeeded();
+            return _cachedScale;
+        }
+    }
+    public float Rotation {
+        get {
+            ReloadCacheIfNeeded();
+            return _cachedRotation;
+        }
+    }
+
+    public void ReloadCacheIfNeeded() {
+        if (CacheReloadNeeded) {
+            _cachedOffset = RelativeOffset();
+            _cachedZ = RelativeZ();
+            _cachedScale = RelativeScale();
+            _cachedRotation = RelativeRotation();
+        }
+    }
 
     /// <summary>
     /// Get transform relative to the base node.

@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using FWGPUE.Scenes;
+using FWGPUE.Gameplay;
 
 namespace FWGPUE.Nodes;
 

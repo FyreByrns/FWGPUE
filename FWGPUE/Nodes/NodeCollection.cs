@@ -92,7 +92,8 @@ class NodeCollection {
     }
 
     public void DrawNodes() {
-        AABB screen = new(Camera.ScreenToWorld(new(0, 0)), Camera.ScreenToWorld(new(Config.ScreenWidth, Config.ScreenHeight)));
+        int screenEdgeBuffer = 100;
+        AABB screen = new(Camera.ScreenToWorld(new(-screenEdgeBuffer, -screenEdgeBuffer)), Camera.ScreenToWorld(new(Config.ScreenWidth + screenEdgeBuffer, Config.ScreenHeight + screenEdgeBuffer)));
 
         foreach (Node2D node in Grid.GetNodesInArea(screen).OrderByDescending(x => x.Z)) {
             node.Draw();
