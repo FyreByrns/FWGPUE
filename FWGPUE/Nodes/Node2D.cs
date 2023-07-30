@@ -4,6 +4,8 @@ using System.Numerics;
 
 namespace FWGPUE.Nodes;
 class Node2D {
+    public NodeCollection Collection { get; set; }
+
     public string? Name { get; set; }
 
     public bool Visible { get; set; } = true;
@@ -89,11 +91,19 @@ class Node2D {
 
     public void ReloadCacheIfNeeded() {
         if (CacheReloadNeeded) {
-            _cachedOffset = RelativeOffset();
-            _cachedZ = RelativeZ();
-            _cachedScale = RelativeScale();
-            _cachedRotation = RelativeRotation();
+            ReloadCache();
         }
+    }
+    public void ReloadCache() {
+        // recalculate values
+        _cachedOffset = RelativeOffset();
+        _cachedZ = RelativeZ();
+        _cachedScale = RelativeScale();
+        _cachedRotation = RelativeRotation();
+
+        // register position in grid
+        Collection?.Grid.RemoveRegistery(this);
+        Collection?.Grid.RegisterPosition(this, _cachedOffset);
     }
 
     /// <summary>

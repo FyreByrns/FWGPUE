@@ -221,7 +221,7 @@ class RenderManager {
         Gl.Viewport(0, 0, (uint)Config.ScreenWidth, (uint)Config.ScreenHeight);
         Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        RenderStages.Add(new ClearColourStage());
+        RenderStages.Add(new ClearColourStage(new(0.05f, 0.4f, 0.1f, 1)));
         RenderStages.Add(new SpriteRenderStage());
         RenderStages.Add(new GeometryRenderStage());
 

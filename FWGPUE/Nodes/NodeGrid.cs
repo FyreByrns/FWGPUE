@@ -2,28 +2,52 @@
 
 namespace FWGPUE.Nodes;
 
+using NodePositionSet = Dictionary<Node2D, Vector2>;
+
 class NodeGrid {
     public const int GridSize = 100;
 
+    public Dictionary<Node2D, NodeGridCoordinates> PositionsByNode = new();
     /// <summary>
     /// Stores the nodes.
     /// </summary>
-    public Dictionary<NodeGridCoordinates, List<NodePositionPair>> Grid = new();
+    public Dictionary<NodeGridCoordinates, NodePositionSet> Grid = new();
     public void Clear() {
         Grid.Clear();
     }
 
-    public bool TryGetSquare(NodeGridCoordinates coordinates, out List<NodePositionPair> nodesInSquare) {
+    public bool TryGetSquare(NodeGridCoordinates coordinates, out NodePositionSet nodesInSquare) {
         return Grid.TryGetValue(coordinates, out nodesInSquare);
+    }
+
+    /// <summary>
+    /// Remove the recorded position of a node.
+    /// </summary>
+    public void RemoveRegistery(Node2D node) {
+        // can't remove anything if there isn't anything
+        if (Grid.Count == 0) {
+            return;
+        }
+
+        if (PositionsByNode.TryGetValue(node, out var grid)) {
+            if (!Grid.ContainsKey(grid)) {
+                Log.Warn(Grid.Count);
+                Log.Warn("attempted removal of node from grid failed: can't find node");
+            }
+            else {
+                Grid[grid].Remove(node);
+            }
+        }
     }
 
     public void RegisterPosition(Node2D node, Vector2 position) {
         NodeGridCoordinates coordinates = GetGridCoordinates(position);
+        PositionsByNode[node] = coordinates;
 
         if (!Grid.ContainsKey(coordinates)) {
-            Grid.Add(coordinates, new List<NodePositionPair>());
+            Grid.Add(coordinates, new NodePositionSet());
         }
-        Grid[coordinates].Add(new(position, node));
+        Grid[coordinates][node] = position;
     }
 
     public IEnumerable<Node2D> GetNodesInArea(AABB area) {
@@ -34,13 +58,13 @@ class NodeGrid {
             for (int y = topLeftSearchSquare.Y; y <= bottomRightSearchSquare.Y; y++) {
                 NodeGridCoordinates currentSquare = new(x, y);
 
-
                 // if there's a grid square here .. 
                 if (TryGetSquare(currentSquare, out var nodes)) {
                     // .. check the fine coordinates of all nodes, return all within aabb
-                    foreach (var nodePositionPair in nodes) {
-                        if (area.PointWithin(nodePositionPair.Position)) {
-                            yield return nodePositionPair.Node;
+                    NodePositionSet snapshot = new(nodes);
+                    foreach (var nodePositionPair in snapshot) {
+                        if (area.PointWithin(nodePositionPair.Value)) {
+                            yield return nodePositionPair.Key;
                         }
                     }
                 }

@@ -55,25 +55,6 @@ class Test : Scene {
             .AddChild(new EntityNode() {
                 LocalOffset = new(10, 50)
             });
-
-        Random rng = new();
-        int maxRange = 1000;
-        for (int i = 0; i < 1000; i++) {
-            Vector2 position = new(
-                rng.Next(-maxRange, maxRange),
-                rng.Next(-maxRange, maxRange));
-            Vector2 scale = new(
-                rng.NextSingle() * 2,
-                rng.NextSingle() * 2);
-
-
-            Nodes.Root.AddChild(new ImageNode() {
-                LocalOffset = position,
-                LocalRotation = rng.NextSingle(),
-                LocalScale = scale,
-                Image = rng.Next(0, 2) == 1 ? "square" : "otherSquare",
-            });
-        }
     }
 
     private void InputEvent(string input) {
@@ -117,13 +98,13 @@ class Test : Scene {
         Camera.Position = new(player.Offset - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
 
         int searchRadius = 80;
-        Renderer.PushCircle(player.Offset, searchRadius, 10, new(0.2f, 0.1f, 1f), false);
-        foreach (var node in Nodes.Grid.GetNodesInCircle(new(player.Offset, searchRadius))) {
-            Renderer.PushCircle(node.Offset, 25, 10, new(1, 0, 0.2f), false);
+        Renderer.PushCircle(player.Offset, searchRadius, 10, new(0, 1, 0), false, 10);
+        foreach(var node in Nodes.Grid.GetNodesInCircle(new(player.Offset, searchRadius))) {
+            Renderer.PushCircle(node.Offset, 30, 10, Vector3.UnitZ, false, 10);
         }
 
+
         Nodes.DrawNodes();
-        //Nodes.DrawDebugConnections();
     }
 
     void OnMouseMove(Vector2 oldMouse, Vector2 newMouse) {

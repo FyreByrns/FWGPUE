@@ -79,20 +79,24 @@ class NodeCollection {
         // get all nodes
         var nodes = Root.AllNodes();
 
-        // clear nodegrid
-        Grid.Clear();
-        // register all nodes in the grid
-        foreach (Node2D node in nodes) {
-            Grid.RegisterPosition(node, node.Offset);
-        }
+        //// clear nodegrid
+        //Grid.Clear();
+        //// register all nodes in the grid
+        //foreach (Node2D node in nodes) {
+        //    Grid.RegisterPosition(node, node.Offset);
+        //}
 
         foreach (Node2D node in nodes) {
+            if (node.Collection != this) {
+                node.Collection = this;
+                node.ReloadCache();
+            }
             node.Tick();
         }
     }
 
     public void DrawNodes() {
-        int screenEdgeBuffer = 100;
+        int screenEdgeBuffer = 800;
         AABB screen = new(Camera.ScreenToWorld(new(-screenEdgeBuffer, -screenEdgeBuffer)), Camera.ScreenToWorld(new(Config.ScreenWidth + screenEdgeBuffer, Config.ScreenHeight + screenEdgeBuffer)));
 
         foreach (Node2D node in Grid.GetNodesInArea(screen).OrderByDescending(x => x.Z)) {
