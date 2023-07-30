@@ -41,4 +41,7 @@ out vec4 FragColor;
 
 void main() {
 	FragColor = texture(uTextureAtlas, fUv);// +vec4(1.0, 1.0, 1.0, 1.0);
+	if (FragColor.z == 0.0) {
+		discard;
+	}
 }

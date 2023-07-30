@@ -1,4 +1,6 @@
 Assets = [
+	grasspatch	 assets/sprites/outdoors/organic/grasspatch1.png
+	rock         assets/sprites/outdoors/organic/rock1.png
 	square       assets/default.png
 	otherSquare  assets/otherDefault.png
 	testText     SCENE_ASSETS/text.txt
