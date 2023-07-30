@@ -4,20 +4,22 @@ using FWGPUE.UI;
 using FWGPUE.Nodes;
 using FWGPUE.Graphics;
 using FWGPUE.Gameplay;
+using FWGPUE.Gameplay.Controllers;
 
 namespace FWGPUE.Scenes;
 
 class Test : Scene {
     EntityNode player = new();
-    Vector2 desiredMovement = Vector2.Zero;
 
     public override void Load() {
         Load<Test>();
 
         Renderer.OnRenderObjectsRequired += OnRender;
         MouseMove += OnMouseMove;
-        InputEventFired += InputEvent;
+        //InputEventFired += InputEvent;
 
+        player.Controller = new PlayerController(player);
+        player.Speed = 0.5f;
         player.LocalScale = new(10, 10);
         player.Weapon = new() {
             Hitboxes = new Hitbox[] {
@@ -46,63 +48,40 @@ class Test : Scene {
             AttackSpeed = 0.02f
         };
 
+        player.AddChild(new BodyPartNode(player, new(new(0, 0), 10)) {
+            LocalOffset = new(0, 0)
+        });
+        player.AddChild(new BodyPartNode(player, new(new(0, 0), 10)) {
+            LocalOffset = new(0, -20)
+        });
+        player.AddChild(new BodyPartNode(player, new(new(0, 0), 10)) {
+            LocalOffset = new(0, 20)
+        });
+
         Nodes.AddChild(player, NodeFilters.ChildOf(Nodes.Root))
-            .AddChild(new EntityNode() {
-                LocalOffset = new(10, 0),
-            });
+        .AddChild(new EntityNode() {
+            LocalOffset = new(10, 0),
 
-        Nodes.AddChild(new EntityNode() { LocalOffset = new(100, 100) }, NodeFilters.ChildOf(Nodes.Root))
-            .AddChild(new EntityNode() {
-                LocalOffset = new(10, 50)
-            });
-    }
+        });
 
-    private void InputEvent(string input) {
-        switch (input) {
-            case "up": {
-                    desiredMovement.Y += -1;
-                    break;
-                }
-            case "down": {
-                    desiredMovement.Y += +1;
-                    break;
-                }
-            case "left": {
-                    desiredMovement.X += -1;
-                    break;
-                }
-            case "right": {
-                    desiredMovement.X += +1;
-                    break;
-                }
+        EntityNode tmp =
+        Nodes.AddChild(new EntityNode() {
+            LocalOffset = new(100, 100),
+            Speed = 0.1f,
+        }, NodeFilters.ChildOf(Nodes.Root)) as EntityNode;
+        tmp.Controller = new RandomMoveController(tmp);
 
-            case "attack": {
-                    player.Weapon.Attack();
-
-                    break;
-                }
-        }
+        tmp.AddChild(new EntityNode() {
+            LocalOffset = new(10, 50)
+        });
     }
 
     public override void Tick() {
         base.Tick();
-
-        // input
-        if (desiredMovement.LengthSquared() > 0) {
-            player.Velocity = Vector2.Normalize(desiredMovement) * 300f * TickTime;
-            desiredMovement = Vector2.Zero;
-        }
     }
 
     void OnRender(double elapsed) {
         Camera.Position = new(player.Offset - new Vector2(Config.ScreenWidth / 2, Config.ScreenHeight / 2), Camera.Position.Z);
-
-        int searchRadius = 80;
-        Renderer.PushCircle(player.Offset, searchRadius, 10, new(0, 1, 0), false, 10);
-        foreach(var node in Nodes.Grid.GetNodesInCircle(new(player.Offset, searchRadius))) {
-            Renderer.PushCircle(node.Offset, 30, 10, Vector3.UnitZ, false, 10);
-        }
-
 
         Nodes.DrawNodes();
     }

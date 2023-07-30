@@ -24,4 +24,8 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+	<ItemGroup>
+	  <None Include="Gameplay\Controllers\EntityController.cs" />
+	  <None Include="Gameplay\Controllers\PlayerController.cs" />
+	</ItemGroup>
 </Project>
